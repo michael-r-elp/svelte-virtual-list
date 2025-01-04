@@ -98,6 +98,7 @@
 >
     <div
         id="virtual-list-viewport"
+        data-testid="virtual-list-viewport"
         class={viewportClass ?? 'virtual-list-viewport'}
         bind:this={viewportElement}
         onscroll={handleScroll}
