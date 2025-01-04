@@ -37,20 +37,14 @@ npm install @humanspeak/svelte-virtual-list
 
     let measureRef: HTMLElement
     let itemHeight = 20 // default height
-
-    onMount(() => {
-        if (measureRef) {
-            itemHeight = measureRef.getBoundingClientRect().height
-        }
-    })
 </script>
 
 <div class="grid grid-cols-2 gap-8">
     <!-- Top to bottom scrolling -->
     <div>
-        <SvelteVirtualList {items} {itemHeight}>
+        <SvelteVirtualList {items}>
             {#snippet renderItem(item: Item, index: number)}
-                <div bind:this={measureRef}>
+                <div>
                     {item.text}
                 </div>
             {/snippet}
@@ -59,9 +53,9 @@ npm install @humanspeak/svelte-virtual-list
 
     <!-- Bottom to top scrolling -->
     <div>
-        <SvelteVirtualList {items} {itemHeight} mode="bottomToTop">
+        <SvelteVirtualList {items} mode="bottomToTop">
             {#snippet renderItem(item: Item, index: number)}
-                <div bind:this={measureRef}>
+                <div>
                     {item.text}
                 </div>
             {/snippet}
@@ -75,15 +69,27 @@ npm install @humanspeak/svelte-virtual-list
 The VirtualList component accepts the following props:
 
 - `items` - Array of items to render
-- `height` - Height of the viewport in pixels
-- `itemHeight` - Height of each item in pixels
+- `defaultItemHeight` - Initial height of each item in pixels (optional, defaults to 40)
 - `mode` - Scroll direction ('topToBottom' or 'bottomToTop')
+- `bufferSize` - Number of items to render outside the visible area (optional, defaults to 20)
 - `debug` - Enable debug mode (optional)
 - `containerClass` - Custom class for container element (optional)
 - `viewportClass` - Custom class for viewport element (optional)
 - `contentClass` - Custom class for content element (optional)
 - `itemsClass` - Custom class for items wrapper (optional)
 - `renderItem` - Snippet function to render each item
+
+Note: The component will automatically calculate the average item height based on rendered items, using `defaultItemHeight` only as an initial value until real measurements are available.
+
+### Buffer Size
+
+The `bufferSize` prop determines how many additional items are rendered outside the visible area. A larger buffer:
+
+- Reduces the chance of seeing blank spaces during fast scrolling
+- Provides smoother scrolling experience
+- Increases memory usage (as more items are rendered)
+
+Default value is 20 items, which provides a good balance between performance and smoothness.
 
 ## Features
 
