@@ -1,5 +1,78 @@
+<!--
+    @component
+    A high-performance virtualized list component that efficiently renders large datasets
+    by only mounting DOM nodes for visible items and a small buffer.
+
+    Props:
+    - `items` - Array of items to render
+    - `defaultEstimatedItemHeight` - Initial height estimate for items (default: 40px)
+    - `mode` - Scroll direction: 'topToBottom' or 'bottomToTop' (default: 'topToBottom')
+    - `debug` - Enable debug logging (default: false)
+    - `bufferSize` - Number of items to render outside visible area (default: 20)
+    - `containerClass` - Custom class for container element
+    - `viewportClass` - Custom class for viewport element
+    - `contentClass` - Custom class for content wrapper
+    - `itemsClass` - Custom class for items wrapper
+    - `debugFunction` - Custom debug logging function
+
+    Usage:
+    ```svelte
+    <SvelteVirtualList
+        items={data}
+        defaultEstimatedItemHeight={40}
+        mode="topToBottom"
+    >
+        {#snippet renderItem(item, index)}
+            <div class="item">{item.text}</div>
+        {/snippet}
+    </SvelteVirtualList>
+    ```
+
+    Features:
+    - Dynamic height calculation
+    - Bidirectional scrolling
+    - Configurable buffer size
+    - Debug mode
+    - Custom styling
+-->
+
 <script lang="ts">
+    /**
+     * SvelteVirtualList is a high-performance virtualized list component that efficiently renders large datasets
+     * by only mounting DOM nodes for visible items and a small buffer.
+     *
+     * Key features:
+     * - Dynamic height calculation for variable-sized items
+     * - Bidirectional scrolling support (top-to-bottom and bottom-to-top)
+     * - Configurable buffer size for smooth scrolling
+     * - Debug mode for performance monitoring
+     * - Customizable styling through class props
+     *
+     * Performance optimizations:
+     * - Uses RAF for scroll handling
+     * - Implements element recycling
+     * - Batches DOM measurements
+     * - Leverages Svelte's fine-grained reactivity
+     *
+     * @example
+     * ```svelte
+     * <SvelteVirtualList items={data} defaultEstimatedItemHeight={40}>
+     *   {#snippet renderItem(item, index)}
+     *     <div class="item">{item.text}</div>
+     *   {/snippet}
+     * </SvelteVirtualList>
+     * ```
+     *
+     * @see {@link Props} for complete configuration options
+     * @see README.md for detailed usage instructions
+     *
+     * @author Original: sveltejs/svelte-virtual-list
+     * @author Enhanced: [Your Team]
+     * @license MIT
+     */
+
     import { onMount } from 'svelte'
+    import { browser } from '$app/environment'
     import type { DebugInfo, Props } from './types.js'
 
     const {
@@ -18,22 +91,20 @@
 
     let containerElement: HTMLElement
     let viewportElement: HTMLElement
-    const itemElements = $state<HTMLElement[]>([])
+    let itemElements = $state<HTMLElement[]>([])
     let scrollTop = $state(0)
     let initialized = $state(false)
     let height = $state(0)
-    const heightsCache = $state<Map<number, number>>(new Map())
     let calculatedItemHeight = $state(defaultEstimatedItemHeight)
     let isCalculatingHeight = $state(false)
     let lastMeasuredIndex = $state(-1)
-    let heightUpdateTimeout: NodeJS.Timeout | null = null
+    let heightUpdateTimeout: ReturnType<typeof setTimeout> | null = null
 
-    // Simplified height calculation with stability checks
+    // Only run measurements in browser environment
     const calculateAverageHeight = () => {
-        if (isCalculatingHeight || heightUpdateTimeout) return
+        if (!browser || isCalculatingHeight || heightUpdateTimeout) return
         isCalculatingHeight = true
 
-        // Clear any pending timeout
         if (heightUpdateTimeout) {
             clearTimeout(heightUpdateTimeout)
         }
@@ -42,7 +113,6 @@
             const visibleRange = visibleItems()
             const currentIndex = visibleRange.start
 
-            // Only measure if we haven't measured this index before
             if (currentIndex !== lastMeasuredIndex) {
                 const validElements = itemElements.filter((el) => el)
                 if (validElements.length > 0) {
@@ -62,36 +132,35 @@
 
             isCalculatingHeight = false
             heightUpdateTimeout = null
-        }, 200) // Increased debounce time for stability
+        }, 200)
     }
 
     $effect(() => {
-        if (itemElements.length > 0 && !isCalculatingHeight) {
+        if (browser && itemElements.length > 0 && !isCalculatingHeight) {
             calculateAverageHeight()
         }
     })
 
-    // Initialize height
+    // Initialize height only in browser
     $effect(() => {
-        if (containerElement) {
+        if (browser && containerElement) {
             height = containerElement.getBoundingClientRect().height
         }
     })
 
-    // Separate effect for scroll initialization
+    // Scroll initialization only in browser
     $effect(() => {
         if (
+            browser &&
             mode === 'bottomToTop' &&
             viewportElement &&
             height > 0 &&
             items.length &&
             !initialized
         ) {
-            // Calculate total content height
             const totalHeight = items.length * calculatedItemHeight
             const maxScroll = totalHeight - height
 
-            // Force scroll to bottom
             requestAnimationFrame(() => {
                 viewportElement.scrollTop = maxScroll
                 scrollTop = maxScroll
@@ -104,7 +173,6 @@
         if (!items.length) return { start: 0, end: 0 }
 
         const viewportHeight = height || 0
-        const totalHeight = items.length * calculatedItemHeight
 
         const result =
             mode === 'bottomToTop'
@@ -133,9 +201,9 @@
         return result
     })
 
-    // Handle scroll updates
+    // Handle scroll updates only in browser
     const handleScroll = () => {
-        if (!viewportElement) return
+        if (!browser || !viewportElement) return
         scrollTop = viewportElement.scrollTop
     }
 
@@ -169,7 +237,7 @@
                 id="virtual-list-items"
                 class={itemsClass ?? 'virtual-list-items'}
                 style:transform="translateY({mode === 'bottomToTop'
-                    ? Math.max(0, items.length - visibleItems().end) * calculatedItemHeight
+                    ? (items.length - visibleItems().end) * calculatedItemHeight
                     : visibleItems().start * calculatedItemHeight}px)"
             >
                 {#each mode === 'bottomToTop' ? items
