@@ -65,6 +65,7 @@
     let isCalculatingHeight = $state(false)
     let lastMeasuredIndex = $state(-1)
     let heightUpdateTimeout: ReturnType<typeof setTimeout> | null = null
+    let resizeObserver: ResizeObserver | null = null
 
     // Only run measurements in BROWSER environment
     const calculateAverageHeight = () => {
@@ -173,9 +174,32 @@
         scrollTop = viewportElement.scrollTop
     }
 
-    onMount(() => {
+    // Update height when container is resized
+    const updateHeight = () => {
         if (containerElement) {
             height = containerElement.getBoundingClientRect().height
+        }
+    }
+
+    onMount(() => {
+        if (BROWSER) {
+            // Initial height calculation
+            updateHeight()
+
+            // Setup resize observer
+            resizeObserver = new ResizeObserver(() => {
+                updateHeight()
+            })
+
+            if (containerElement) {
+                resizeObserver.observe(containerElement)
+            }
+
+            return () => {
+                if (resizeObserver) {
+                    resizeObserver.disconnect()
+                }
+            }
         }
     })
 </script>
