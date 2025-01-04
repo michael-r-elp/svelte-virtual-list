@@ -2,6 +2,7 @@
 
 [![NPM version](https://img.shields.io/npm/v/@humanspeak/svelte-virtual-list.svg)](https://www.npmjs.com/package/@humanspeak/svelte-virtual-list)
 [![Build Status](https://github.com/humanspeak/svelte-virtual-list/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/humanspeak/svelte-virtual-list/actions/workflows/npm-publish.yml)
+[![Coverage Status](https://coveralls.io/repos/github/humanspeak/svelte-virtual-list/badge.svg?branch=main)](https://coveralls.io/github/humanspeak/svelte-virtual-list?branch=main)
 [![License](https://img.shields.io/npm/l/@humanspeak/svelte-virtual-list.svg)](https://github.com/humanspeak/svelte-virtual-list/blob/main/LICENSE)
 [![Downloads](https://img.shields.io/npm/dm/@humanspeak/svelte-virtual-list.svg)](https://www.npmjs.com/package/@humanspeak/svelte-virtual-list)
 [![CodeQL](https://github.com/humanspeak/svelte-virtual-list/actions/workflows/codeql.yml/badge.svg)](https://github.com/humanspeak/svelte-virtual-list/actions/workflows/codeql.yml)
@@ -22,6 +23,7 @@ npm install @humanspeak/svelte-virtual-list
 ```svelte
 <script lang="ts">
     import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
+    import { onMount } from 'svelte'
 
     type Item = {
         id: number
@@ -43,13 +45,29 @@ npm install @humanspeak/svelte-virtual-list
     })
 </script>
 
-<SvelteVirtualList {items} height={400} {itemHeight}>
-    {#snippet renderItem(item: Item, index: number)}
-        <div class="list-item" bind:this={measureRef}>
-            {item.text}
-        </div>
-    {/snippet}
-</SvelteVirtualList>
+<div class="grid grid-cols-2 gap-8">
+    <!-- Top to bottom scrolling -->
+    <div>
+        <SvelteVirtualList {items} {itemHeight}>
+            {#snippet renderItem(item: Item, index: number)}
+                <div bind:this={measureRef}>
+                    {item.text}
+                </div>
+            {/snippet}
+        </SvelteVirtualList>
+    </div>
+
+    <!-- Bottom to top scrolling -->
+    <div>
+        <SvelteVirtualList {items} {itemHeight} mode="bottomToTop">
+            {#snippet renderItem(item: Item, index: number)}
+                <div bind:this={measureRef}>
+                    {item.text}
+                </div>
+            {/snippet}
+        </SvelteVirtualList>
+    </div>
+</div>
 ```
 
 ## Props
@@ -59,6 +77,7 @@ The VirtualList component accepts the following props:
 - `items` - Array of items to render
 - `height` - Height of the viewport in pixels
 - `itemHeight` - Height of each item in pixels
+- `mode` - Scroll direction ('topToBottom' or 'bottomToTop')
 - `debug` - Enable debug mode (optional)
 - `containerClass` - Custom class for container element (optional)
 - `viewportClass` - Custom class for viewport element (optional)
