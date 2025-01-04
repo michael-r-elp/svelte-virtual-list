@@ -115,7 +115,7 @@
         }
     })
 
-    // Scroll initialization only in BROWSER
+    // Scroll initialization with delay for bottomToTop
     $effect(() => {
         if (
             BROWSER &&
@@ -126,13 +126,14 @@
             !initialized
         ) {
             const totalHeight = items.length * calculatedItemHeight
-            const maxScroll = totalHeight - height
-
-            requestAnimationFrame(() => {
-                viewportElement.scrollTop = maxScroll
-                scrollTop = maxScroll
-                initialized = true
-            })
+            // Add delay to ensure layout is complete
+            setTimeout(() => {
+                if (viewportElement) {
+                    viewportElement.scrollTop = totalHeight - height
+                    scrollTop = totalHeight - height
+                    initialized = true
+                }
+            }, 50) // Small delay to ensure DOM layout is complete
         }
     })
 
@@ -181,14 +182,59 @@
         }
     }
 
+    // Update height and scroll position
+    const updateHeightAndScroll = (immediate = false) => {
+        const delay = immediate ? 0 : 100 // Increased delay for initial layout
+
+        // For the initial setup, we'll do two passes to ensure proper layout
+        if (!initialized && mode === 'bottomToTop') {
+            // First pass - just get initial height
+            setTimeout(() => {
+                if (containerElement) {
+                    height = containerElement.getBoundingClientRect().height
+
+                    // Second pass - set scroll position after layout is stable
+                    setTimeout(() => {
+                        if (containerElement && viewportElement) {
+                            const finalHeight = containerElement.getBoundingClientRect().height
+                            height = finalHeight
+                            const totalHeight = items.length * calculatedItemHeight
+                            viewportElement.scrollTop = totalHeight - finalHeight
+                            scrollTop = totalHeight - finalHeight
+                            initialized = true
+                        }
+                    }, 50) // Additional delay for final position
+                }
+            }, delay)
+            return
+        }
+
+        // Normal resize handling
+        setTimeout(() => {
+            if (containerElement) {
+                const oldHeight = height
+                const newHeight = containerElement.getBoundingClientRect().height
+                height = newHeight
+
+                if (mode === 'bottomToTop' && viewportElement && initialized) {
+                    // Maintain position on resize
+                    const visibleIndex = Math.floor(scrollTop / calculatedItemHeight)
+                    const newScrollTop = visibleIndex * calculatedItemHeight
+                    viewportElement.scrollTop = newScrollTop
+                    scrollTop = newScrollTop
+                }
+            }
+        }, delay)
+    }
+
     onMount(() => {
         if (BROWSER) {
-            // Initial height calculation
-            updateHeight()
+            // Initial height and scroll setup with delay
+            updateHeightAndScroll()
 
             // Setup resize observer
             resizeObserver = new ResizeObserver(() => {
-                updateHeight()
+                updateHeightAndScroll(true)
             })
 
             if (containerElement) {
