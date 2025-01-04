@@ -7,7 +7,7 @@ export default defineConfig({
         sentrySvelteKit({
             sourceMapsUploadOptions: {
                 org: 'humanspeak',
-                project: 'sveltemarkdown-com'
+                project: 'virtuallist-svelte-page'
             }
         }),
         sveltekit()
