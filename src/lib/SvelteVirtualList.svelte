@@ -57,7 +57,7 @@
 
     let containerElement: HTMLElement
     let viewportElement: HTMLElement
-    const itemElements = $state<HTMLElement[]>([])
+    let itemElements = $state<HTMLElement[]>([])
     let scrollTop = $state(0)
     let initialized = $state(false)
     let height = $state(0)
@@ -182,54 +182,79 @@
         }
     }
 
-    // Update height and scroll position
+    /**
+     * Updates the height and scroll position of the virtual list.
+     *
+     * This function handles two scenarios:
+     * 1. Initial setup (critical for bottomToTop mode in flexbox layouts)
+     * 2. Subsequent resize events
+     *
+     * For bottomToTop mode, we need to ensure:
+     * - The flexbox layout is fully calculated
+     * - The height measurements are accurate
+     * - The scroll position starts at the bottom
+     *
+     * @param immediate - Whether to skip the delay (used for resize events)
+     */
     const updateHeightAndScroll = (immediate = false) => {
-        const delay = immediate ? 0 : 100 // Increased delay for initial layout
-
-        // For the initial setup, we'll do two passes to ensure proper layout
+        // For the initial setup in bottomToTop mode
         if (!initialized && mode === 'bottomToTop') {
-            // First pass - just get initial height
+            // First pass - get initial layout
             setTimeout(() => {
                 if (containerElement) {
-                    height = containerElement.getBoundingClientRect().height
+                    const initialHeight = containerElement.getBoundingClientRect().height
+                    height = initialHeight
 
-                    // Second pass - set scroll position after layout is stable
+                    // Second pass - ensure layout is stable
                     setTimeout(() => {
                         if (containerElement && viewportElement) {
                             const finalHeight = containerElement.getBoundingClientRect().height
                             height = finalHeight
                             const totalHeight = items.length * calculatedItemHeight
+
+                            // Force a reflow before setting scroll position
+                            void containerElement.offsetHeight
+
                             viewportElement.scrollTop = totalHeight - finalHeight
                             scrollTop = totalHeight - finalHeight
-                            initialized = true
+
+                            // Final check to ensure correct position
+                            requestAnimationFrame(() => {
+                                if (viewportElement) {
+                                    const currentScroll = viewportElement.scrollTop
+                                    if (currentScroll !== scrollTop) {
+                                        viewportElement.scrollTop = totalHeight - finalHeight
+                                        scrollTop = totalHeight - finalHeight
+                                    }
+                                    initialized = true
+                                }
+                            })
                         }
-                    }, 50) // Additional delay for final position
+                    }, 100) // Increased delay for second pass
                 }
-            }, delay)
+            }, 100) // Increased delay for first pass
             return
         }
 
-        // Normal resize handling
-        setTimeout(() => {
-            if (containerElement) {
-                const oldHeight = height
+        // Handle resize events
+        if (immediate) {
+            if (containerElement && viewportElement && initialized) {
                 const newHeight = containerElement.getBoundingClientRect().height
                 height = newHeight
 
-                if (mode === 'bottomToTop' && viewportElement && initialized) {
-                    // Maintain position on resize
+                if (mode === 'bottomToTop') {
                     const visibleIndex = Math.floor(scrollTop / calculatedItemHeight)
                     const newScrollTop = visibleIndex * calculatedItemHeight
                     viewportElement.scrollTop = newScrollTop
                     scrollTop = newScrollTop
                 }
             }
-        }, delay)
+        }
     }
 
     onMount(() => {
         if (BROWSER) {
-            // Initial height and scroll setup with delay
+            // Initial setup
             updateHeightAndScroll()
 
             // Setup resize observer
