@@ -19,9 +19,9 @@
     })
 </script>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: 400px;">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: 600px;">
     <div>
-        <SvelteVirtualList {items} height={400} {itemHeight} debug>
+        <SvelteVirtualList {items} {itemHeight} debug>
             {#snippet renderItem(item: Item, index: number)}
                 <div bind:this={measureRef}>
                     {item.text}
@@ -30,7 +30,7 @@
         </SvelteVirtualList>
     </div>
     <div>
-        <SvelteVirtualList {items} height={400} {itemHeight} debug mode="bottomToTop">
+        <SvelteVirtualList {items} {itemHeight} debug mode="bottomToTop">
             {#snippet renderItem(item: Item, index: number)}
                 <div bind:this={measureRef}>
                     {item.text}

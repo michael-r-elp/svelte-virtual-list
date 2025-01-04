@@ -1,9 +1,9 @@
 <script lang="ts">
+    import { onMount } from 'svelte'
     import type { DebugInfo, Props } from './types.js'
 
     const {
         items = [],
-        height = 400,
         itemHeight = 40,
         debug = false,
         renderItem,
@@ -12,46 +12,52 @@
         contentClass,
         itemsClass,
         debugFunction,
-        mode = 'topToBottom'
+        mode = 'topToBottom',
+        bufferSize = 20
     }: Props = $props()
 
     let containerElement: HTMLElement
     let viewportElement: HTMLElement
     let scrollTop = $state(0)
     let initialized = $state(false)
+    let height = $state(0)
 
-    // Initialize scroll position for bottom-to-top mode
+    // Initialize height
     $effect(() => {
-        if (mode === 'bottomToTop' && viewportElement && items.length) {
-            // Calculate the maximum scroll position
-            const maxScroll = Math.max(0, items.length * itemHeight - height)
-
-            // Set scroll position immediately
-            viewportElement.scrollTop = maxScroll
-            scrollTop = maxScroll
-            initialized = true
-
-            // Double-check the position in next frame to ensure it stuck
-            // requestAnimationFrame(() => {
-            //     if (viewportElement && viewportElement.scrollTop !== maxScroll) {
-            //         viewportElement.scrollTop = maxScroll
-            //         scrollTop = maxScroll
-            //     }
-            // })
+        if (containerElement) {
+            height = containerElement.getBoundingClientRect().height
         }
     })
 
-    // Increase buffer size to reduce scroll jumps
-    const BUFFER_SIZE = 20
+    // Separate effect for scroll initialization
+    $effect(() => {
+        if (
+            mode === 'bottomToTop' &&
+            viewportElement &&
+            height > 0 &&
+            items.length &&
+            !initialized
+        ) {
+            // Calculate total content height and max scroll position
+            const totalHeight = items.length * itemHeight
+            const maxScroll = totalHeight - height + itemHeight / 2 // Add half item height to ensure full scroll
+
+            // Force scroll to bottom
+            requestAnimationFrame(() => {
+                viewportElement.scrollTop = maxScroll
+                scrollTop = maxScroll
+                initialized = true
+            })
+        }
+    })
 
     let visibleItems = $derived(() => {
         if (!items.length) return { start: 0, end: 0 }
 
         if (mode === 'bottomToTop' && !initialized) {
-            // Pre-render last items immediately while initializing
-            const visibleCount = Math.ceil(height / itemHeight)
+            // Show the absolute last items while initializing
             return {
-                start: Math.max(0, items.length - visibleCount - BUFFER_SIZE),
+                start: Math.max(0, items.length - Math.ceil(height / itemHeight)),
                 end: items.length
             }
         }
@@ -61,48 +67,40 @@
 
         if (mode === 'bottomToTop') {
             return {
-                start: Math.max(0, items.length - visibleEnd - BUFFER_SIZE),
-                end: Math.min(items.length, items.length - visibleStart + BUFFER_SIZE)
+                start: Math.max(0, items.length - visibleEnd - bufferSize),
+                end: Math.min(items.length, items.length - visibleStart + bufferSize)
             }
         }
 
         return {
-            start: Math.max(0, visibleStart - BUFFER_SIZE),
-            end: Math.min(items.length, visibleEnd + BUFFER_SIZE)
+            start: Math.max(0, visibleStart - bufferSize),
+            end: Math.min(items.length, visibleEnd + bufferSize)
         }
     })
 
-    // Add debounced scroll handling to prevent rapid recalculations
-    let scrollTimeout: number
+    // Handle scroll updates
     const handleScroll = () => {
         if (!viewportElement) return
-
-        // Update immediately for first scroll
-        if (scrollTop === 0) {
-            scrollTop = viewportElement.scrollTop
-            return
-        }
-
-        // Debounce subsequent scroll updates
-        window.clearTimeout(scrollTimeout)
-        scrollTimeout = window.setTimeout(() => {
-            scrollTop = viewportElement.scrollTop
-        }, 10) // Small delay to smooth out rapid scrolling
+        scrollTop = viewportElement.scrollTop
     }
+
+    onMount(() => {
+        if (containerElement) {
+            height = containerElement.getBoundingClientRect().height
+        }
+    })
 </script>
 
 <div
     id="virtual-list-container"
     class={containerClass ?? 'virtual-list-container'}
     bind:this={containerElement}
-    style:height="{height}px"
 >
     <div
         id="virtual-list-viewport"
         class={viewportClass ?? 'virtual-list-viewport'}
         bind:this={viewportElement}
         onscroll={handleScroll}
-        style:height="{height}px"
     >
         <div
             id="virtual-list-content"
@@ -146,12 +144,17 @@
     .virtual-list-container {
         position: relative;
         width: 100%;
+        height: 100%;
         overflow: hidden;
     }
 
     .virtual-list-viewport {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         overflow-y: scroll;
-        width: 100%;
         -webkit-overflow-scrolling: touch;
     }
 

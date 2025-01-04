@@ -4,7 +4,6 @@ export type Mode = 'topToBottom' | 'bottomToTop'
 
 export type Props = {
     items: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
-    height: number
     itemHeight: number
     debug?: boolean
     debugFunction?: (_info: DebugInfo) => void
@@ -13,6 +12,7 @@ export type Props = {
     contentClass?: string
     itemsClass?: string
     mode?: Mode
+    bufferSize?: number
     renderItem: Snippet<[item: any, index: number]> // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 

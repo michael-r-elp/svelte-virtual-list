@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Header from '../lib/components/base/Header.svelte'
+    import Header from '$lib/components/base/Header.svelte'
 
     import '../app.css'
     import { ModeWatcher } from 'mode-watcher'
