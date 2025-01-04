@@ -1,5 +1,5 @@
 <script lang="ts">
-    import SvelteVirtualList from '$lib/SvelteVirtualList.svelte'
+    import SvelteVirtualList from '$lib/index.js'
     import { onMount } from 'svelte'
 
     type Item = {
@@ -19,10 +19,23 @@
     })
 </script>
 
-<SvelteVirtualList {items} height={400} {itemHeight}>
-    {#snippet renderItem(item: Item, index: number)}
-        <div class="list-item" bind:this={measureRef}>
-            {item.text}
-        </div>
-    {/snippet}
-</SvelteVirtualList>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: 400px;">
+    <div>
+        <SvelteVirtualList {items} height={400} {itemHeight} debug>
+            {#snippet renderItem(item: Item, index: number)}
+                <div bind:this={measureRef}>
+                    {item.text}
+                </div>
+            {/snippet}
+        </SvelteVirtualList>
+    </div>
+    <div>
+        <SvelteVirtualList {items} height={400} {itemHeight} debug mode="bottomToTop">
+            {#snippet renderItem(item: Item, index: number)}
+                <div bind:this={measureRef}>
+                    {item.text}
+                </div>
+            {/snippet}
+        </SvelteVirtualList>
+    </div>
+</div>

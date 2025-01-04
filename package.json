@@ -1,6 +1,6 @@
 {
     "name": "@humanspeak/svelte-virtual-list",
-    "description": "A virtual list for Svelte",
+    "description": "A high-performance virtual list component for Svelte 5 that efficiently renders large datasets through DOM recycling. Perfect for handling infinite scrolling and rendering thousands of items with minimal memory footprint.",
     "version": "0.0.0",
     "scripts": {
         "dev": "vite dev",
@@ -30,9 +30,25 @@
         "svelte",
         "virtual-list",
         "virtual-scroll",
-        "virtual-scroller"
+        "virtual-scroller",
+        "infinite-scroll",
+        "performance",
+        "ui-component",
+        "svelte5"
     ],
-    "homepage": "sveltevirtuallist.com",
+    "keywords": [
+        "svelte",
+        "virtual-list",
+        "virtual-scroll",
+        "infinite-scroll",
+        "performance",
+        "ui-component",
+        "svelte5",
+        "dom-recycling",
+        "large-lists",
+        "scroll-optimization"
+    ],
+    "homepage": "https://virtuallist.svelte.page",
     "files": [
         "dist",
         "!dist/**/*.test.*",
@@ -91,5 +107,12 @@
     },
     "volta": {
         "node": "22.12.0"
+    },
+    "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/humanspeak"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }
