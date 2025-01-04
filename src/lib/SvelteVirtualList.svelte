@@ -57,7 +57,7 @@
 
     let containerElement: HTMLElement
     let viewportElement: HTMLElement
-    let itemElements = $state<HTMLElement[]>([])
+    const itemElements = $state<HTMLElement[]>([])
     let scrollTop = $state(0)
     let initialized = $state(false)
     let height = $state(0)
