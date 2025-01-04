@@ -22,22 +22,44 @@
 
     // Initialize scroll position for bottom-to-top mode
     $effect(() => {
-        if (mode === 'bottomToTop' && viewportElement && !initialized) {
-            const maxScroll = Math.max(0, items.length * itemHeight)
+        if (mode === 'bottomToTop' && viewportElement && items.length) {
+            // Calculate the maximum scroll position
+            const maxScroll = Math.max(0, items.length * itemHeight - height)
+
+            // Set scroll position immediately
             viewportElement.scrollTop = maxScroll
             scrollTop = maxScroll
             initialized = true
+
+            // Double-check the position in next frame to ensure it stuck
+            // requestAnimationFrame(() => {
+            //     if (viewportElement && viewportElement.scrollTop !== maxScroll) {
+            //         viewportElement.scrollTop = maxScroll
+            //         scrollTop = maxScroll
+            //     }
+            // })
         }
     })
 
+    // Increase buffer size to reduce scroll jumps
+    const BUFFER_SIZE = 20
+
     let visibleItems = $derived(() => {
         if (!items.length) return { start: 0, end: 0 }
+
+        if (mode === 'bottomToTop' && !initialized) {
+            // Pre-render last items immediately while initializing
+            const visibleCount = Math.ceil(height / itemHeight)
+            return {
+                start: Math.max(0, items.length - visibleCount - BUFFER_SIZE),
+                end: items.length
+            }
+        }
 
         const visibleStart = Math.floor(scrollTop / itemHeight)
         const visibleEnd = Math.min(items.length, Math.ceil((scrollTop + height) / itemHeight))
 
         if (mode === 'bottomToTop') {
-            // Reverse the visible range for bottom-to-top mode
             return {
                 start: Math.max(0, items.length - visibleEnd - BUFFER_SIZE),
                 end: Math.min(items.length, items.length - visibleStart + BUFFER_SIZE)
@@ -50,12 +72,22 @@
         }
     })
 
-    // Add padding to reduce scroll jumps
-    const BUFFER_SIZE = 5
-
+    // Add debounced scroll handling to prevent rapid recalculations
+    let scrollTimeout: number
     const handleScroll = () => {
         if (!viewportElement) return
-        scrollTop = viewportElement.scrollTop
+
+        // Update immediately for first scroll
+        if (scrollTop === 0) {
+            scrollTop = viewportElement.scrollTop
+            return
+        }
+
+        // Debounce subsequent scroll updates
+        window.clearTimeout(scrollTimeout)
+        scrollTimeout = window.setTimeout(() => {
+            scrollTop = viewportElement.scrollTop
+        }, 10) // Small delay to smooth out rapid scrolling
     }
 </script>
 
