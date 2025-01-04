@@ -93,16 +93,21 @@
                             <Sidebar.MenuSub>
                                 <Sidebar.MenuSubItem>
                                     <Sidebar.MenuButton>
-                                        <a href={'https://humanspeak.com'}>
-                                            <i class="fa-solid fa-house-heart"></i>
+                                        <a href={'https://humanspeak.com'} target="_blank">
                                             <span>Humanspeak</span>
                                         </a>
                                     </Sidebar.MenuButton>
                                 </Sidebar.MenuSubItem>
                                 <Sidebar.MenuSubItem>
                                     <Sidebar.MenuButton>
-                                        <a href={'https://shadcn-svelte.com'}>
-                                            <i class="fa-solid fa-house-heart"></i>
+                                        <a href={'https://beye.ai'} target="_blank">
+                                            <span>B/eye</span>
+                                        </a>
+                                    </Sidebar.MenuButton>
+                                </Sidebar.MenuSubItem>
+                                <Sidebar.MenuSubItem>
+                                    <Sidebar.MenuButton>
+                                        <a href={'https://shadcn-svelte.com'} target="_blank">
                                             <span>Shadcn</span>
                                         </a>
                                     </Sidebar.MenuButton>
