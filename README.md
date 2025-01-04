@@ -18,6 +18,10 @@ A virtual list component for Svelte applications. Built for Svelte 5 with TypeSc
 npm install @humanspeak/svelte-virtual-list
 ```
 
+## Dependencies
+
+- [esm-env](https://github.com/benmccann/esm-env) - svelte5 suggested environment detecting
+
 ## Usage
 
 ```svelte
@@ -34,9 +38,6 @@ npm install @humanspeak/svelte-virtual-list
         id: i,
         text: `Item ${i}`
     }))
-
-    let measureRef: HTMLElement
-    let itemHeight = 20 // default height
 </script>
 
 <div class="grid grid-cols-2 gap-8">

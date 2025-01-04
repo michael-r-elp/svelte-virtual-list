@@ -37,42 +37,8 @@
 -->
 
 <script lang="ts">
-    /**
-     * SvelteVirtualList is a high-performance virtualized list component that efficiently renders large datasets
-     * by only mounting DOM nodes for visible items and a small buffer.
-     *
-     * Key features:
-     * - Dynamic height calculation for variable-sized items
-     * - Bidirectional scrolling support (top-to-bottom and bottom-to-top)
-     * - Configurable buffer size for smooth scrolling
-     * - Debug mode for performance monitoring
-     * - Customizable styling through class props
-     *
-     * Performance optimizations:
-     * - Uses RAF for scroll handling
-     * - Implements element recycling
-     * - Batches DOM measurements
-     * - Leverages Svelte's fine-grained reactivity
-     *
-     * @example
-     * ```svelte
-     * <SvelteVirtualList items={data} defaultEstimatedItemHeight={40}>
-     *   {#snippet renderItem(item, index)}
-     *     <div class="item">{item.text}</div>
-     *   {/snippet}
-     * </SvelteVirtualList>
-     * ```
-     *
-     * @see {@link Props} for complete configuration options
-     * @see README.md for detailed usage instructions
-     *
-     * @author Original: sveltejs/svelte-virtual-list
-     * @author Enhanced: [Your Team]
-     * @license MIT
-     */
-
     import { onMount } from 'svelte'
-    import { browser } from '$app/environment'
+    import { BROWSER } from 'esm-env'
     import type { DebugInfo, Props } from './types.js'
 
     const {
@@ -100,9 +66,9 @@
     let lastMeasuredIndex = $state(-1)
     let heightUpdateTimeout: ReturnType<typeof setTimeout> | null = null
 
-    // Only run measurements in browser environment
+    // Only run measurements in BROWSER environment
     const calculateAverageHeight = () => {
-        if (!browser || isCalculatingHeight || heightUpdateTimeout) return
+        if (!BROWSER || isCalculatingHeight || heightUpdateTimeout) return
         isCalculatingHeight = true
 
         if (heightUpdateTimeout) {
@@ -136,22 +102,22 @@
     }
 
     $effect(() => {
-        if (browser && itemElements.length > 0 && !isCalculatingHeight) {
+        if (BROWSER && itemElements.length > 0 && !isCalculatingHeight) {
             calculateAverageHeight()
         }
     })
 
-    // Initialize height only in browser
+    // Initialize height only in BROWSER
     $effect(() => {
-        if (browser && containerElement) {
+        if (BROWSER && containerElement) {
             height = containerElement.getBoundingClientRect().height
         }
     })
 
-    // Scroll initialization only in browser
+    // Scroll initialization only in BROWSER
     $effect(() => {
         if (
-            browser &&
+            BROWSER &&
             mode === 'bottomToTop' &&
             viewportElement &&
             height > 0 &&
@@ -201,9 +167,9 @@
         return result
     })
 
-    // Handle scroll updates only in browser
+    // Handle scroll updates only in BROWSER
     const handleScroll = () => {
-        if (!browser || !viewportElement) return
+        if (!BROWSER || !viewportElement) return
         scrollTop = viewportElement.scrollTop
     }
 
