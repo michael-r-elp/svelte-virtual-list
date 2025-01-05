@@ -21,7 +21,7 @@
     ],
     "scripts": {
         "dev": "vite dev",
-        "build": "npm run generate-social && vite build && npm run package",
+        "build": "vite build && npm run package",
         "preview": "vite preview",
         "package": "svelte-kit sync && svelte-package && publint",
         "prepublishOnly": "npm run package",
@@ -32,8 +32,7 @@
         "test:watch": "vitest",
         "lint": "prettier --check . && eslint .",
         "lint:fix": "npm run format && eslint . --fix",
-        "format": "prettier --write .",
-        "generate-social": "tsx scripts/generate-social-images.ts"
+        "format": "prettier --write ."
     },
     "dependencies": {
         "esm-env": "^1.2.1"
