@@ -1,5 +1,7 @@
 <script lang="ts">
-    import SvelteVirtualList, { type SvelteVirtualListDebugInfo } from '@humanspeak/svelte-virtual-list'
+    import SvelteVirtualList, {
+        type SvelteVirtualListDebugInfo
+    } from '@humanspeak/svelte-virtual-list'
     import * as Card from '$lib/shadcn/components/ui/card/index.js'
     import MainContainer from '$lib/components/MainContainer.svelte'
 
@@ -51,7 +53,12 @@
                             </Card.Description>
                         </Card.Header>
                         <Card.Content class="flex-1">
-                            <SvelteVirtualList {items} mode="bottomToTop" debug debugFunction={bottomToTopDebug}>
+                            <SvelteVirtualList
+                                {items}
+                                mode="bottomToTop"
+                                debug
+                                debugFunction={bottomToTopDebug}
+                            >
                                 {#snippet renderItem(item: Item, _index: number)}
                                     <div>
                                         {item.text}

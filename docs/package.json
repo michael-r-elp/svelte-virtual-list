@@ -67,8 +67,7 @@
     },
     "dependencies": {
         "@sentry/cloudflare": "^8.47.0",
-        "@sentry/sveltekit": "^8.47.0",
-        "html2canvas": "^1.4.1"
+        "@sentry/sveltekit": "^8.47.0"
     },
     "overrides": {
         "@sveltejs/kit": {
