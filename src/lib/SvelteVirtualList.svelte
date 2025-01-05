@@ -158,7 +158,7 @@
      * Performance Optimization State
      */
     let heightCache = $state<Record<number, number>>({}) // Cache of measured item heights
-    let chunkSize = $state(50) // Number of items to process in each chunk
+    const chunkSize = $state(50) // Number of items to process in each chunk
     let processedItems = $state(0) // Number of items processed during initialization
 
     /**

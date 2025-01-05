@@ -51,17 +51,17 @@ npm install @humanspeak/svelte-virtual-list
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `items` | `T[]` | Required | Array of items to render |
-| `defaultItemHeight` | `number` | `40` | Initial height for items before measurement |
-| `mode` | `'topToBottom' \| 'bottomToTop'` | `'topToBottom'` | Scroll direction |
-| `bufferSize` | `number` | `20` | Number of items to render outside viewport |
-| `debug` | `boolean` | `false` | Enable debug logging and visualizations |
-| `containerClass` | `string` | `''` | Class for outer container |
-| `viewportClass` | `string` | `''` | Class for scrollable viewport |
-| `contentClass` | `string` | `''` | Class for content wrapper |
-| `itemsClass` | `string` | `''` | Class for items container |
+| Prop                | Type                             | Default         | Description                                 |
+| ------------------- | -------------------------------- | --------------- | ------------------------------------------- |
+| `items`             | `T[]`                            | Required        | Array of items to render                    |
+| `defaultItemHeight` | `number`                         | `40`            | Initial height for items before measurement |
+| `mode`              | `'topToBottom' \| 'bottomToTop'` | `'topToBottom'` | Scroll direction                            |
+| `bufferSize`        | `number`                         | `20`            | Number of items to render outside viewport  |
+| `debug`             | `boolean`                        | `false`         | Enable debug logging and visualizations     |
+| `containerClass`    | `string`                         | `''`            | Class for outer container                   |
+| `viewportClass`     | `string`                         | `''`            | Class for scrollable viewport               |
+| `contentClass`      | `string`                         | `''`            | Class for content wrapper                   |
+| `itemsClass`        | `string`                         | `''`            | Class for items container                   |
 
 ## Dependencies
 
@@ -210,7 +210,11 @@ No manual intervention is needed when item contents or dimensions change.
         timestamp: Date
     }
 
-    const messages: Message[] = // ... your messages array
+    const messages: Message[] = Array.from({ length: 100 }, (_, i) => ({
+        id: i,
+        text: `Message ${i}`,
+        timestamp: new Date()
+    }))
 </script>
 
 <SvelteVirtualList

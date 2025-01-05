@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { VirtualListSetters, VirtualListState } from './types.js'
 import {
+    calculateAverageHeight,
     calculateScrollPosition,
     calculateTransformY,
     calculateVisibleRange,
+    processChunked,
     updateHeightAndScroll
 } from './virtualList.js'
 
@@ -112,5 +114,108 @@ describe('updateHeightAndScroll', () => {
         expect(setters.setHeight).toHaveBeenCalledWith(500)
         expect(setters.setScrollTop).toHaveBeenCalledWith(90)
         expect(setters.setInitialized).not.toHaveBeenCalled()
+    })
+})
+
+describe('calculateAverageHeight', () => {
+    it('should return current height when no elements are provided', () => {
+        const result = calculateAverageHeight([], { start: 0 }, {}, -1, 40)
+
+        expect(result.newHeight).toBe(40)
+        expect(result.newLastMeasuredIndex).toBe(-1)
+        expect(result.updatedHeightCache).toEqual({})
+    })
+
+    it('should calculate average height from elements', () => {
+        const mockElements = [
+            { getBoundingClientRect: () => ({ height: 30 }) },
+            { getBoundingClientRect: () => ({ height: 50 }) }
+        ] as HTMLElement[]
+
+        const result = calculateAverageHeight(mockElements, { start: 0 }, {}, -1, 40)
+
+        expect(result.newHeight).toBe(40) // (30 + 50) / 2
+        expect(result.newLastMeasuredIndex).toBe(0)
+        expect(result.updatedHeightCache).toEqual({ 0: 30, 1: 50 })
+    })
+
+    it('should use cached heights when available', () => {
+        const mockElements = [{ getBoundingClientRect: () => ({ height: 30 }) }] as HTMLElement[]
+
+        const existingCache = { 0: 40 }
+
+        const result = calculateAverageHeight(mockElements, { start: 0 }, existingCache, 0, 40)
+
+        expect(result.updatedHeightCache).toEqual(existingCache)
+    })
+})
+
+describe('processChunked', () => {
+    beforeEach(() => {
+        vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+        vi.clearAllTimers()
+        vi.useRealTimers()
+    })
+
+    it('should process empty array immediately', async () => {
+        const onProgress = vi.fn()
+        const onComplete = vi.fn()
+
+        const promise = processChunked([], 50, onProgress, onComplete)
+        await promise
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(onProgress).not.toHaveBeenCalled()
+        expect(onComplete).toHaveBeenCalledOnce()
+    })
+
+    it('should process items in chunks', async () => {
+        const items = Array.from({ length: 150 }, (_, i) => i)
+        const onProgress = vi.fn()
+        const onComplete = vi.fn()
+
+        const promise = processChunked(items, 50, onProgress, onComplete)
+        await vi.runAllTimersAsync()
+        await promise
+
+        expect(onProgress).toHaveBeenCalledTimes(3)
+        expect(onProgress).toHaveBeenNthCalledWith(1, 50)
+        expect(onProgress).toHaveBeenNthCalledWith(2, 100)
+        expect(onProgress).toHaveBeenNthCalledWith(3, 150)
+        expect(onComplete).toHaveBeenCalledOnce()
+    })
+
+    it('should handle chunk sizes larger than array', async () => {
+        const items = Array.from({ length: 30 }, (_, i) => i)
+        const onProgress = vi.fn()
+        const onComplete = vi.fn()
+
+        const promise = processChunked(items, 50, onProgress, onComplete)
+        await vi.runAllTimersAsync()
+        await promise
+
+        expect(onProgress).toHaveBeenCalledTimes(1)
+        expect(onProgress).toHaveBeenCalledWith(30)
+        expect(onComplete).toHaveBeenCalledOnce()
+    })
+
+    it('should yield to main thread between chunks', async () => {
+        const items = Array.from({ length: 150 }, (_, i) => i)
+        const onProgress = vi.fn()
+        const onComplete = vi.fn()
+
+        const promise = processChunked(items, 50, onProgress, onComplete)
+
+        // First chunk processes immediately
+        expect(onProgress).toHaveBeenCalledWith(50)
+
+        await vi.runAllTimersAsync()
+        await promise
+
+        expect(onProgress).toHaveBeenCalledTimes(3)
+        expect(onComplete).toHaveBeenCalledOnce()
     })
 })
