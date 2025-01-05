@@ -154,8 +154,11 @@
                     const heights = Object.values(heightCache)
                     const averageHeight = heights.reduce((sum, h) => sum + h, 0) / heights.length
 
-                    if (averageHeight > 0 && !isNaN(averageHeight) &&
-                        Math.abs(averageHeight - calculatedItemHeight) > 1) {
+                    if (
+                        averageHeight > 0 &&
+                        !isNaN(averageHeight) &&
+                        Math.abs(averageHeight - calculatedItemHeight) > 1
+                    ) {
                         calculatedItemHeight = averageHeight
                         lastMeasuredIndex = currentIndex
                     }
@@ -407,7 +410,8 @@
                             visibleItemsCount: visibleItems().end - visibleItems().start,
                             startIndex: visibleItems().start,
                             endIndex: visibleItems().end,
-                            totalItems: items.length
+                            totalItems: items.length,
+                            processedItems
                         }}
                         {debugFunction
                             ? debugFunction(debugInfo)
