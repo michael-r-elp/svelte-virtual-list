@@ -1,5 +1,5 @@
 <script lang="ts">
-    import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
+    import SvelteVirtualList, { type SvelteVirtualListDebugInfo } from '@humanspeak/svelte-virtual-list'
     import * as Card from '$lib/shadcn/components/ui/card/index.js'
 
     type Item = {
@@ -8,6 +8,14 @@
     }
 
     const items: Item[] = Array.from({ length: 100000 }, (_, i) => ({ id: i, text: `Item ${i}` }))
+
+    function topToBottomDebug(info: SvelteVirtualListDebugInfo) {
+        console.log('topToBottomDebug', info)
+    }
+
+    function bottomToTopDebug(info: SvelteVirtualListDebugInfo) {
+        console.log('bottomToTopDebug', info)
+    }
 </script>
 
 <div class="h-full w-full">
@@ -17,9 +25,12 @@
                 <Card.Root class="flex h-full flex-col">
                     <Card.Header>
                         <Card.Title>Top to bottom</Card.Title>
+                        <Card.Description>
+                            Check the console for debug information (topToBottomDebug)
+                        </Card.Description>
                     </Card.Header>
                     <Card.Content class="flex flex-1 flex-col">
-                        <SvelteVirtualList {items}>
+                        <SvelteVirtualList {items} debug debugFunction={topToBottomDebug}>
                             {#snippet renderItem(item: Item, _index: number)}
                                 <div>
                                     {item.text}
@@ -33,9 +44,12 @@
                 <Card.Root class="flex h-full w-full flex-col">
                     <Card.Header>
                         <Card.Title>Bottom to top</Card.Title>
+                        <Card.Description>
+                            Check the console for debug information (bottomToTopDebug)
+                        </Card.Description>
                     </Card.Header>
                     <Card.Content class="flex-1">
-                        <SvelteVirtualList {items} mode="bottomToTop">
+                        <SvelteVirtualList {items} mode="bottomToTop" debug debugFunction={bottomToTopDebug}>
                             {#snippet renderItem(item: Item, _index: number)}
                                 <div>
                                     {item.text}

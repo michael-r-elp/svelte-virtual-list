@@ -6,8 +6,4 @@ import type {
 } from './types.js'
 
 export default SvelteVirtualList
-export type {
-    SvelteVirtualListDebugInfo as DebugInfo,
-    SvelteVirtualListMode as Mode,
-    SvelteVirtualListProps as Props
-}
+export type { SvelteVirtualListDebugInfo, SvelteVirtualListMode, SvelteVirtualListProps }
