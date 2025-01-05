@@ -168,10 +168,7 @@ npm run build
 The component supports reverse scrolling, which is useful for chat applications or logs:
 
 ```svelte
-<SvelteVirtualList
-    {items}
-    mode="bottomToTop"
->
+<SvelteVirtualList {items} mode="bottomToTop">
     {#snippet renderItem(item)}
         <div>{item.text}</div>
     {/snippet}
