@@ -39,7 +39,7 @@
 <script lang="ts">
     import { onMount } from 'svelte'
     import { BROWSER } from 'esm-env'
-    import type { DebugInfo, Props } from './types.js'
+    import type { SvelteVirtualListDebugInfo, SvelteVirtualListProps } from './types.js'
     import {
         calculateScrollPosition,
         calculateVisibleRange,
@@ -59,11 +59,11 @@
         debugFunction,
         mode = 'topToBottom',
         bufferSize = 20
-    }: Props = $props()
+    }: SvelteVirtualListProps = $props()
 
     let containerElement: HTMLElement
     let viewportElement: HTMLElement
-    let itemElements = $state<HTMLElement[]>([])
+    const itemElements = $state<HTMLElement[]>([])
     let scrollTop = $state(0)
     let initialized = $state(false)
     let height = $state(0)
@@ -294,7 +294,7 @@
                           .slice(visibleItems().start, visibleItems().end)
                           .reverse() : items.slice(visibleItems().start, visibleItems().end) as currentItem, i (currentItem?.id ?? i)}
                     {#if debug && i === 0}
-                        {@const debugInfo: DebugInfo = {
+                        {@const debugInfo: SvelteVirtualListDebugInfo = {
                             visibleItemsCount: visibleItems().end - visibleItems().start,
                             startIndex: visibleItems().start,
                             endIndex: visibleItems().end,

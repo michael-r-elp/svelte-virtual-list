@@ -1,5 +1,13 @@
 import SvelteVirtualList from './SvelteVirtualList.svelte'
-import type { DebugInfo, Mode, Props } from './types.js'
+import type {
+    SvelteVirtualListDebugInfo,
+    SvelteVirtualListMode,
+    SvelteVirtualListProps
+} from './types.js'
 
 export default SvelteVirtualList
-export type { DebugInfo, Mode, Props }
+export type {
+    SvelteVirtualListDebugInfo as DebugInfo,
+    SvelteVirtualListMode as Mode,
+    SvelteVirtualListProps as Props
+}
