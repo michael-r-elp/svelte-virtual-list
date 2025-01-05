@@ -30,9 +30,8 @@ export const sentryHandle: Handle = async ({ event, resolve }) => {
                 response.headers.set(header, value)
             }
         })
-    } catch (error) {
+    } catch {
         // Headers are immutable, log if needed
-        console.debug('Headers are immutable, skipping security headers')
     }
 
     return response

@@ -24,16 +24,18 @@
 
 <div
     id="social-card"
-    class="relative overflow-hidden p-16 text-white flex flex-col"
+    class="relative flex flex-col overflow-hidden p-16 text-white"
     style:width="{activeDimensions.width}px"
     style:height="{activeDimensions.height}px"
     style="background: radial-gradient(circle at 95% 95%, #FF3E00 0%, #54DBBC 40%, #4AE3B6 70%, #40D1A7 100%);"
 >
-    <div class="flex absolute inset-0 bg-black/5 backdrop-blur-[1px]"></div>
+    <div class="absolute inset-0 flex bg-black/5 backdrop-blur-[1px]"></div>
     <div class="relative flex h-full flex-col justify-between">
         <!-- Header Section -->
         <div class="flex flex-col space-y-8">
-            <div class="flex flex-shrink-0 text-lg font-medium uppercase tracking-wider text-white/80">
+            <div
+                class="flex flex-shrink-0 text-lg font-medium uppercase tracking-wider text-white/80"
+            >
                 {type === 'og' ? 'High Performance Virtual List' : 'Virtual List Component'}
             </div>
             <h1
@@ -69,16 +71,13 @@
         <!-- Bottom Bar -->
         <div class="flex w-full items-end justify-between">
             <div
-                class="flex items-center rounded-full bg-white/10 px-6 py-3 backdrop-blur-sm flex-shrink-0"
+                class="flex flex-shrink-0 items-center rounded-full bg-white/10 px-6 py-3 backdrop-blur-sm"
             >
-                <img src="{url}/humanspeak-bubble.svg" alt="Logo" class="h-8 mr-2" />
+                <img src="{url}/humanspeak-bubble.svg" alt="Logo" class="mr-2 h-8" />
                 <span class="text-xl font-medium">by Humanspeak</span>
             </div>
-            <div
-                class="flex items-center  rounded-full bg-white/10 px-6 py-3 backdrop-blur-sm"
-
-            >
-                <img src="{url}/svelte-logo.svg" alt="Svelte" class="h-8 mr-2" />
+            <div class="flex items-center rounded-full bg-white/10 px-6 py-3 backdrop-blur-sm">
+                <img src="{url}/svelte-logo.svg" alt="Svelte" class="mr-2 h-8" />
                 <span class="text-xl font-medium">Built for Svelte 5</span>
             </div>
         </div>
