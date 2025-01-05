@@ -1,6 +1,6 @@
 {
     "name": "@humanspeak/svelte-virtual-list",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "A high-performance virtual list component for Svelte 5 that efficiently renders large datasets through DOM recycling. Perfect for handling infinite scrolling and rendering thousands of items with minimal memory footprint.",
     "type": "module",
     "svelte": "./dist/index.js",
