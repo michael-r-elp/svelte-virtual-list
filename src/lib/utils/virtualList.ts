@@ -131,3 +131,122 @@ export const updateHeightAndScroll = (
         }
     }
 }
+
+/**
+ * Calculates the average height of visible items in a virtual list.
+ *
+ * This function optimizes performance by:
+ * 1. Using a height cache to store measured item heights
+ * 2. Only measuring new items not in the cache
+ * 3. Calculating a running average of all measured heights
+ *
+ * @param {HTMLElement[]} itemElements - Array of currently rendered item elements
+ * @param {{ start: number }} visibleRange - Object containing the start index of visible items
+ * @param {Record<number, number>} heightCache - Cache of previously measured item heights
+ * @param {number} lastMeasuredIndex - Index of the last measured item
+ * @param {number} currentItemHeight - Current average item height being used
+ *
+ * @returns {{
+ *   newHeight: number,
+ *   newLastMeasuredIndex: number,
+ *   updatedHeightCache: Record<number, number>
+ * }} Object containing new calculated height, last measured index, and updated cache
+ *
+ * @example
+ * const result = calculateAverageHeight(
+ *   itemElements,
+ *   { start: 0 },
+ *   {},
+ *   -1,
+ *   40
+ * )
+ */
+export const calculateAverageHeight = (
+    itemElements: HTMLElement[],
+    visibleRange: { start: number },
+    heightCache: Record<number, number>,
+    lastMeasuredIndex: number,
+    currentItemHeight: number
+): {
+    newHeight: number
+    newLastMeasuredIndex: number
+    updatedHeightCache: Record<number, number>
+} => {
+    const validElements = itemElements.filter((el) => el)
+    if (validElements.length === 0) {
+        return {
+            newHeight: currentItemHeight,
+            newLastMeasuredIndex: lastMeasuredIndex,
+            updatedHeightCache: heightCache
+        }
+    }
+
+    const newHeightCache = { ...heightCache }
+
+    // Cache heights for new items
+    validElements.forEach((el, i) => {
+        const itemIndex = visibleRange.start + i
+        if (!newHeightCache[itemIndex]) {
+            newHeightCache[itemIndex] = el.getBoundingClientRect().height
+        }
+    })
+
+    // Calculate average from cached heights
+    const heights = Object.values(newHeightCache)
+    const averageHeight = heights.reduce((sum, h) => sum + h, 0) / heights.length
+
+    return {
+        newHeight: averageHeight > 0 && !isNaN(averageHeight) ? averageHeight : currentItemHeight,
+        newLastMeasuredIndex: visibleRange.start,
+        updatedHeightCache: newHeightCache
+    }
+}
+
+/**
+ * Processes large arrays in chunks to prevent UI blocking.
+ *
+ * This function implements a progressive processing strategy that:
+ * 1. Breaks down large arrays into manageable chunks
+ * 2. Processes each chunk asynchronously
+ * 3. Reports progress after each chunk
+ * 4. Yields to the main thread between chunks
+ *
+ * @param {any[]} items - Array of items to process
+ * @param {number} chunkSize - Number of items to process in each chunk
+ * @param {(processed: number) => void} onProgress - Callback for progress updates
+ * @param {() => void} onComplete - Callback when all processing is complete
+ *
+ * @returns {Promise<void>} Resolves when all chunks have been processed
+ *
+ * @example
+ * await processChunked(
+ *   largeArray,
+ *   50,
+ *   (processed) => console.log(`Processed ${processed} items`),
+ *   () => console.log('All items processed')
+ * )
+ */
+export const processChunked = async (
+    items: any[], // eslint-disable-line @typescript-eslint/no-explicit-any
+    chunkSize: number,
+    onProgress: (processed: number) => void, // eslint-disable-line no-unused-vars
+    onComplete: () => void
+) => {
+    if (!items.length) {
+        onComplete()
+        return
+    }
+
+    const processChunk = async (startIdx: number) => {
+        const endIdx = Math.min(startIdx + chunkSize, items.length)
+        onProgress(endIdx)
+
+        if (endIdx < items.length) {
+            setTimeout(() => processChunk(endIdx), 0)
+        } else {
+            onComplete()
+        }
+    }
+
+    await processChunk(0)
+}

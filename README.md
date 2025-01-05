@@ -12,11 +12,56 @@
 
 A virtual list component for Svelte applications. Built for Svelte 5 with TypeScript support.
 
+## Features
+
+- Efficient rendering of large lists with dynamic heights
+- Bi-directional scrolling (top-to-bottom and bottom-to-top)
+- Automatic resize handling and content updates
+- TypeScript support with full type safety
+- SSR compatible with hydration support
+- Svelte 5 runes and snippets support
+- Customizable styling with class props
+- Debug mode for development
+- Smooth scrolling with configurable buffer zones
+
 ## Installation
 
 ```bash
 npm install @humanspeak/svelte-virtual-list
 ```
+
+## Basic Usage
+
+```svelte
+<script lang="ts">
+    import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
+
+    const items = Array.from({ length: 1000 }, (_, i) => ({
+        id: i,
+        text: `Item ${i}`
+    }))
+</script>
+
+<SvelteVirtualList {items}>
+    {#snippet renderItem(item)}
+        <div>{item.text}</div>
+    {/snippet}
+</SvelteVirtualList>
+```
+
+## Props
+
+| Prop                | Type                             | Default         | Description                                 |
+| ------------------- | -------------------------------- | --------------- | ------------------------------------------- |
+| `items`             | `T[]`                            | Required        | Array of items to render                    |
+| `defaultItemHeight` | `number`                         | `40`            | Initial height for items before measurement |
+| `mode`              | `'topToBottom' \| 'bottomToTop'` | `'topToBottom'` | Scroll direction                            |
+| `bufferSize`        | `number`                         | `20`            | Number of items to render outside viewport  |
+| `debug`             | `boolean`                        | `false`         | Enable debug logging and visualizations     |
+| `containerClass`    | `string`                         | `''`            | Class for outer container                   |
+| `viewportClass`     | `string`                         | `''`            | Class for scrollable viewport               |
+| `contentClass`      | `string`                         | `''`            | Class for content wrapper                   |
+| `itemsClass`        | `string`                         | `''`            | Class for items container                   |
 
 ## Dependencies
 
@@ -64,43 +109,6 @@ npm install @humanspeak/svelte-virtual-list
     </div>
 </div>
 ```
-
-## Props
-
-The VirtualList component accepts the following props:
-
-- `items` - Array of items to render
-- `defaultItemHeight` - Initial height of each item in pixels (optional, defaults to 40)
-- `mode` - Scroll direction ('topToBottom' or 'bottomToTop')
-- `bufferSize` - Number of items to render outside the visible area (optional, defaults to 20)
-- `debug` - Enable debug mode (optional)
-- `containerClass` - Custom class for container element (optional)
-- `viewportClass` - Custom class for viewport element (optional)
-- `contentClass` - Custom class for content element (optional)
-- `itemsClass` - Custom class for items wrapper (optional)
-- `renderItem` - Snippet function to render each item
-
-Note: The component will automatically calculate the average item height based on rendered items, using `defaultItemHeight` only as an initial value until real measurements are available.
-
-### Buffer Size
-
-The `bufferSize` prop determines how many additional items are rendered outside the visible area. A larger buffer:
-
-- Reduces the chance of seeing blank spaces during fast scrolling
-- Provides smoother scrolling experience
-- Increases memory usage (as more items are rendered)
-
-Default value is 20 items, which provides a good balance between performance and smoothness.
-
-## Features
-
-- Efficient rendering of large lists
-- TypeScript support
-- Customizable styling
-- Debug mode for development
-- Smooth scrolling with buffer zones
-- SSR compatible
-- Svelte 5 runes support
 
 ## Development
 
@@ -187,6 +195,52 @@ The component automatically handles:
 - Dynamic height calculations
 
 No manual intervention is needed when item contents or dimensions change.
+
+## Advanced Usage
+
+### Chat Application Example
+
+```svelte
+<script lang="ts">
+    import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
+
+    type Message = {
+        id: number
+        text: string
+        timestamp: Date
+    }
+
+    const messages: Message[] = Array.from({ length: 100 }, (_, i) => ({
+        id: i,
+        text: `Message ${i}`,
+        timestamp: new Date()
+    }))
+</script>
+
+<SvelteVirtualList
+    items={messages}
+    mode="bottomToTop"
+    containerClass="h-screen"
+    viewportClass="bg-gray-100"
+>
+    {#snippet renderItem(message)}
+        <div class="p-4 rounded-lg shadow-sm">
+            <p>{message.text}</p>
+            <span class="text-sm text-gray-500">
+                {message.timestamp.toLocaleString()}
+            </span>
+        </div>
+    {/snippet}
+</SvelteVirtualList>
+```
+
+## Performance Considerations
+
+- The `bufferSize` prop affects memory usage and scroll smoothness
+- Items are measured and cached for optimal performance
+- Dynamic height calculations happen automatically
+- Resize observers handle container/content changes
+- Virtual DOM updates are batched for efficiency
 
 ## Related
 
