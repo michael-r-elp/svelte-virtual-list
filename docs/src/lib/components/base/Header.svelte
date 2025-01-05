@@ -9,7 +9,6 @@
     <div class="flex justify-start">
         <Sidebar.Trigger />
     </div>
-    <!-- Empty left column -->
     <h1 class="text-center text-4xl font-extrabold">
         <div class="flex w-full items-center justify-center gap-2">
             {#if $mode === 'dark'}
