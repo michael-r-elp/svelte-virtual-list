@@ -90,6 +90,7 @@
         updateHeightAndScroll as utilsUpdateHeightAndScroll
     } from './utils/virtualList.js'
 
+    // Core configuration props with default values
     const {
         items = [],
         defaultEstimatedItemHeight = 40,
@@ -104,19 +105,23 @@
         bufferSize = 20
     }: SvelteVirtualListProps = $props()
 
+    // DOM references and state management
     let containerElement: HTMLElement
     let viewportElement: HTMLElement
-    const itemElements = $state<HTMLElement[]>([])
-    let scrollTop = $state(0)
-    let initialized = $state(false)
-    let height = $state(0)
-    let calculatedItemHeight = $state(defaultEstimatedItemHeight)
-    let isCalculatingHeight = $state(false)
-    let lastMeasuredIndex = $state(-1)
+    const itemElements = $state<HTMLElement[]>([]) // Tracks rendered item elements for height calculations
+    let scrollTop = $state(0) // Current scroll position
+    let initialized = $state(false) // Tracks if initial setup is complete
+    let height = $state(0) // Container height
+    let calculatedItemHeight = $state(defaultEstimatedItemHeight) // Current average item height
+    let isCalculatingHeight = $state(false) // Prevents concurrent height calculations
+    let lastMeasuredIndex = $state(-1) // Tracks last measured item for optimization
     let heightUpdateTimeout: ReturnType<typeof setTimeout> | null = null
     let resizeObserver: ResizeObserver | null = null
 
-    // Only run measurements in BROWSER environment
+    /**
+     * Calculates the average height of visible items to improve accuracy of virtual scrolling
+     * Uses debouncing to prevent excessive calculations
+     */
     const calculateAverageHeight = () => {
         if (!BROWSER || isCalculatingHeight || heightUpdateTimeout) return
         isCalculatingHeight = true
@@ -129,12 +134,15 @@
             const visibleRange = visibleItems()
             const currentIndex = visibleRange.start
 
+            // Only recalculate if we're looking at different items
             if (currentIndex !== lastMeasuredIndex) {
                 const validElements = itemElements.filter((el) => el)
                 if (validElements.length > 0) {
+                    // Calculate average height from actual rendered elements
                     const heights = validElements.map((el) => el.getBoundingClientRect().height)
                     const averageHeight = heights.reduce((sum, h) => sum + h, 0) / heights.length
 
+                    // Update only if there's a significant change
                     if (
                         averageHeight > 0 &&
                         !isNaN(averageHeight) &&
@@ -148,23 +156,24 @@
 
             isCalculatingHeight = false
             heightUpdateTimeout = null
-        }, 200)
+        }, 200) // Debounce for 200ms
     }
 
+    // Trigger height calculation when items are rendered
     $effect(() => {
         if (BROWSER && itemElements.length > 0 && !isCalculatingHeight) {
             calculateAverageHeight()
         }
     })
 
-    // Initialize height only in BROWSER
+    // Update container height when element is mounted
     $effect(() => {
         if (BROWSER && containerElement) {
             height = containerElement.getBoundingClientRect().height
         }
     })
 
-    // Scroll initialization with delay for bottomToTop
+    // Special handling for bottom-to-top mode initialization
     $effect(() => {
         if (
             BROWSER &&
@@ -178,14 +187,16 @@
             // Add delay to ensure layout is complete
             setTimeout(() => {
                 if (viewportElement) {
+                    // Start at the bottom for bottom-to-top mode
                     viewportElement.scrollTop = totalHeight - height
                     scrollTop = totalHeight - height
                     initialized = true
                 }
-            }, 50) // Small delay to ensure DOM layout is complete
+            }, 50)
         }
     })
 
+    // Calculate which items should be visible based on current scroll position
     const visibleItems = $derived(() => {
         if (!items.length) return { start: 0, end: 0 }
         const viewportHeight = height || 0
@@ -200,7 +211,7 @@
         )
     })
 
-    // Handle scroll updates only in BROWSER
+    // Update scroll position when user scrolls
     const handleScroll = () => {
         if (!BROWSER || !viewportElement) return
         scrollTop = viewportElement.scrollTop
@@ -279,12 +290,13 @@
         )
     }
 
+    // Setup and cleanup
     onMount(() => {
         if (BROWSER) {
-            // Initial setup
+            // Initial setup of heights and scroll position
             updateHeightAndScroll()
 
-            // Setup resize observer
+            // Watch for container size changes
             resizeObserver = new ResizeObserver(() => {
                 updateHeightAndScroll(true)
             })
@@ -293,6 +305,7 @@
                 resizeObserver.observe(containerElement)
             }
 
+            // Cleanup on component destruction
             return () => {
                 if (resizeObserver) {
                     resizeObserver.disconnect()
@@ -302,12 +315,20 @@
     })
 </script>
 
+<!--
+    The template uses a four-layer structure:
+    1. Container - Overall boundary
+    2. Viewport - Scrollable area
+    3. Content - Full height container
+    4. Items - Translated list of visible items
+-->
 <div
     id="virtual-list-container"
     data-testid="virtual-list-container"
     class={containerClass ?? 'virtual-list-container'}
     bind:this={containerElement}
 >
+    <!-- Viewport handles scrolling -->
     <div
         id="virtual-list-viewport"
         data-testid="virtual-list-viewport"
@@ -315,12 +336,14 @@
         bind:this={viewportElement}
         onscroll={handleScroll}
     >
+        <!-- Content provides full scrollable height -->
         <div
             id="virtual-list-content"
             class={contentClass ?? 'virtual-list-content'}
             data-testid="virtual-list-content"
             style:height="{Math.max(height, items.length * calculatedItemHeight)}px"
         >
+            <!-- Items container is translated to show correct items -->
             <div
                 id="virtual-list-items"
                 class={itemsClass ?? 'virtual-list-items'}
@@ -335,6 +358,7 @@
                 {#each mode === 'bottomToTop' ? items
                           .slice(visibleItems().start, visibleItems().end)
                           .reverse() : items.slice(visibleItems().start, visibleItems().end) as currentItem, i (currentItem?.id ?? i)}
+                    <!-- Debug output for first item if debug mode is enabled -->
                     {#if debug && i === 0}
                         {@const debugInfo: SvelteVirtualListDebugInfo = {
                             visibleItemsCount: visibleItems().end - visibleItems().start,
@@ -346,6 +370,7 @@
                             ? debugFunction(debugInfo)
                             : console.log('Virtual List Debug:', debugInfo)}
                     {/if}
+                    <!-- Render each visible item -->
                     <div bind:this={itemElements[i]}>
                         {@render renderItem(
                             currentItem,
@@ -361,6 +386,7 @@
 </div>
 
 <style>
+    /* Container establishes positioning context */
     .virtual-list-container {
         position: relative;
         width: 100%;
@@ -368,6 +394,7 @@
         overflow: hidden;
     }
 
+    /* Viewport handles scrolling with iOS momentum scroll */
     .virtual-list-viewport {
         position: absolute;
         top: 0;
@@ -378,12 +405,14 @@
         -webkit-overflow-scrolling: touch;
     }
 
+    /* Content wrapper maintains full scrollable height */
     .virtual-list-content {
         position: relative;
         width: 100%;
         min-height: 100%;
     }
 
+    /* Items wrapper is translated for virtual scrolling */
     .virtual-list-items {
         position: absolute;
         width: 100%;
