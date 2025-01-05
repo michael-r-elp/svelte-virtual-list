@@ -22,9 +22,19 @@ export const sentryHandle: Handle = async ({ event, resolve }) => {
         dsn: env.PUBLIC_SENTRY_DSN
     }))
     const response = await resolve(event)
-    Object.entries(securityHeaders).forEach(([header, value]) => {
-        response.headers.set(header, value)
-    })
+
+    // Check if headers are mutable before attempting to set them
+    try {
+        Object.entries(securityHeaders).forEach(([header, value]) => {
+            if (!response.headers.has(header)) {
+                response.headers.set(header, value)
+            }
+        })
+    } catch (error) {
+        // Headers are immutable, log if needed
+        console.debug('Headers are immutable, skipping security headers')
+    }
+
     return response
 }
 
