@@ -1,8 +1,11 @@
 <script lang="ts">
     import '../app.css'
     import { ModeWatcher } from 'mode-watcher'
+    import { page } from '$app/state'
 
     const { children } = $props()
+    const imageLocation = `${page.url.origin}/`
+
 </script>
 
 <svelte:head>
@@ -14,13 +17,13 @@
     <meta property="og:description" content="Efficiently render large datasets in Svelte 5 with dynamic heights, bidirectional scrolling, and TypeScript support." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://virtuallist.svelte.page" />
-    <meta property="og:image" content="https://virtuallist.svelte.page/og-image.png" />
+    <meta property="og:image" content="{imageLocation}svelte-virtual-list-opengraph.png" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Svelte Virtual List Component" />
     <meta name="twitter:description" content="High-performance virtual scrolling for Svelte 5 applications" />
-    <meta name="twitter:image" content="https://virtuallist.svelte.page/twitter-image.png" />
+    <meta name="twitter:image" content="{imageLocation}svelte-virtual-list-twitter.png" />
 
     <!-- Keywords -->
     <meta name="keywords" content="svelte, virtual list, virtual scroll, infinite scroll, performance, typescript, svelte5, dom recycling, large lists, chat interface, data table, ui component" />

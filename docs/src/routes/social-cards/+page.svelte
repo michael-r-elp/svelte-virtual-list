@@ -22,21 +22,60 @@
         if (!card) return
 
         try {
-            const canvas = await html2canvas(card, {
+            // Wait for fonts and images to load
+            await document.fonts.ready
+            await Promise.all(
+                Array.from(card.getElementsByTagName('img'))
+                    .map(img => img.complete ? Promise.resolve() : new Promise(resolve => img.onload = resolve))
+            )
+
+            // Create a clone to modify without affecting the display
+            const clone = card.cloneNode(true) as HTMLElement
+            document.body.appendChild(clone)
+            clone.style.position = 'absolute'
+            clone.style.left = '-9999px'
+            clone.style.top = '0'
+
+            // Ensure all styles are computed and applied
+            const computedStyle = window.getComputedStyle(card)
+            clone.style.transform = 'none'  // Remove any transforms
+            clone.style.padding = computedStyle.padding
+            clone.style.background = computedStyle.background
+            clone.style.backdropFilter = computedStyle.backdropFilter
+
+            // Ensure backdrop-filter is rendered
+            await new Promise(resolve => setTimeout(resolve, 100))
+
+            const canvas = await html2canvas(clone, {
                 scale: 2, // Higher resolution
                 backgroundColor: null,
                 logging: false,
                 allowTaint: true,
                 useCORS: true,
+                removeContainer: true, // Clean up the clone
                 onclone: (clonedDoc) => {
-                    // Fix any specific styles in the cloned document if needed
+                    // Fix any specific styles in the cloned document
                     const clonedCard = clonedDoc.getElementById('social-card')
                     if (clonedCard) {
-                        clonedCard.style.transform = 'none'
-                        clonedCard.style.padding = '64px' // 16 * 4 = p-16
+                        // Ensure gradients are captured correctly
+                        const gradientStyle = window.getComputedStyle(card).background
+                        clonedCard.style.background = gradientStyle
+
+                        // Fix backdrop-blur
+                        const elements = clonedCard.querySelectorAll('[class*="backdrop-blur"]')
+                        elements.forEach(el => {
+                            if (el instanceof HTMLElement) {
+                                el.style.backdropFilter = 'blur(8px)'
+                            }
+                        })
                     }
                 }
             })
+
+            // Clean up the clone if it wasn't removed
+            if (clone.parentNode) {
+                clone.parentNode.removeChild(clone)
+            }
 
             const link = document.createElement('a')
             link.download = `svelte-virtual-list-${cardType}.png`
@@ -50,7 +89,7 @@
 
 <div
     id="social-card"
-    class=" flex relative bg-[radial-gradient(circle_at_95%_95%,_#FF3E00_0%,_#54DBBC_40%,_#4AE3B6_70%,_#40D1A7_100%)] text-white p-16 overflow-hidden"
+    class="relative bg-[radial-gradient(circle_at_95%_95%,_#FF3E00_0%,_#54DBBC_40%,_#4AE3B6_70%,_#40D1A7_100%)] text-white p-16 overflow-hidden"
     style:width="{activeDimensions.width}px"
     style:height="{activeDimensions.height}px"
 >
@@ -90,17 +129,17 @@
             </div>
         </div>
 
-            <!-- Bottom Bar -->
-            <div class="flex justify-between items-end">
-                <div class="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full">
-                    <img src="/humanspeak-bubble.svg" alt="Logo" class="h-8" />
-                    <span class="text-xl font-medium">by Humanspeak</span>
-                </div>
-                <div class="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full">
-                    <img src="./svelte-logo.svg" alt="Svelte" class="h-8" />
-                    <span class="text-xl font-medium">Built for Svelte 5</span>
-                </div>
+        <!-- Bottom Bar -->
+        <div class="flex justify-between items-end w-full">
+            <div class="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full">
+                <img src="/humanspeak-bubble.svg" alt="Logo" class="h-8" />
+                <span class="text-xl font-medium">by Humanspeak</span>
             </div>
+            <div class="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full" style="margin-right: -32px;">
+                <img src="./svelte-logo.svg" alt="Svelte" class="h-8" />
+                <span class="text-xl font-medium">Built for Svelte 5</span>
+            </div>
+        </div>
     </div>
 </div>
 
