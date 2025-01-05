@@ -25,7 +25,7 @@
     class="relative bg-gradient-to-br from-[#FF3E00] to-[#40B3FF] p-16"
 >
     <div class="flex flex-col items-center justify-center h-full text-white">
-        <img src="/Humanspeak-bubble.svg" alt="Humanspeak Logo" class="w-32 h-32 mb-8" />
+        <img src="/humanspeak-bubble.svg" alt="Humanspeak Logo" class="w-32 h-32 mb-8" />
         <h1 class="text-6xl font-bold mb-6">Svelte Virtual List</h1>
         <p class="text-2xl opacity-90">High Performance List Virtualization for Svelte 5</p>
 
@@ -48,7 +48,7 @@
 
     <!-- Watermark -->
     <div class="absolute bottom-6 right-6 flex items-center gap-2 text-white/80">
-        <img src="/Humanspeak-bubble.svg" alt="Humanspeak" class="w-6 h-6" />
+        <img src="/humanspeak-bubble.svg" alt="Humanspeak" class="w-6 h-6" />
         <span>humanspeak.com</span>
     </div>
 </div>
