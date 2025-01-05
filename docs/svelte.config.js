@@ -14,13 +14,23 @@ const config = {
         // See https://svelte.dev/docs/kit/adapters for more information about adapters.
         adapter: adapter(),
         csp: {
+            mode: 'hash',
             directives: {
+                'default-src': ['self'],
                 'script-src': [
                     'self',
                     'https://kit.fontawesome.com',
-                    'https://o4507838639243264.ingest.us.sentry.io'
+                    'https://*.ingest.us.sentry.io'
                 ],
-                'worker-src': ['self', 'blob:']
+                'style-src': ['self', 'unsafe-inline', 'https://kit.fontawesome.com'],
+                'img-src': ['self', 'data:', 'https:'],
+                'font-src': ['self', 'data:', 'https://kit.fontawesome.com'],
+                'worker-src': ['self', 'blob:'],
+                'connect-src': ['self', 'https:'],
+                'frame-ancestors': ['none'],
+                'form-action': ['self'],
+                'base-uri': ['self'],
+                'upgrade-insecure-requests': true
             }
         }
     },
