@@ -125,9 +125,74 @@ npm run build
 
 [MIT](LICENSE)
 
+## Key Features
+
+- Dynamic item height handling - no fixed height required
+- Bi-directional scrolling support (top-to-bottom and bottom-to-top)
+- Automatic resize handling for dynamic content
+- Efficient rendering of large lists
+- TypeScript support
+- Customizable styling
+- Debug mode for development
+- Smooth scrolling with buffer zones
+- SSR compatible
+- Svelte 5 runes support
+
+## Usage Examples
+
+### Basic Usage
+
+### Default display
+
+```svelte
+<script lang="ts">
+    import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
+
+    const items = Array.from({ length: 1000 }, (_, i) => ({
+        id: i,
+        text: `Item ${i}`
+    }))
+</script>
+
+<SvelteVirtualList {items}>
+    {#snippet renderItem(item)}
+        <div>
+            {item.text}
+        </div>
+    {/snippet}
+</SvelteVirtualList>
+```
+
+### Bottom-to-Top Scrolling
+
+The component supports reverse scrolling, which is useful for chat applications or logs:
+
+```svelte
+<SvelteVirtualList
+    {items}
+    mode="bottomToTop"
+>
+    {#snippet renderItem(item)}
+        <div>{item.text}</div>
+    {/snippet}
+</SvelteVirtualList>
+```
+
+## Advanced Features
+
+### Auto-resize Handling
+
+The component automatically handles:
+
+- Dynamic content changes within items
+- Window resize events
+- Container resize events
+- Dynamic height calculations
+
+No manual intervention is needed when item contents or dimensions change.
+
 ## Related
 
 - [Svelte](https://svelte.dev) - JavaScript front-end framework
-- [Original Component](https://github.com/pablo-abc/svelte-virtual-list) - Original inspiration
 
 Made with ♥ by [Humanspeak](https://humanspeak.com)
