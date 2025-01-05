@@ -20,7 +20,7 @@
                     </Card.Header>
                     <Card.Content class="flex flex-1 flex-col">
                         <SvelteVirtualList {items}>
-                            {#snippet renderItem(item: Item, index: number)}
+                            {#snippet renderItem(item: Item, _index: number)}
                                 <div>
                                     {item.text}
                                 </div>
@@ -36,7 +36,7 @@
                     </Card.Header>
                     <Card.Content class="flex-1">
                         <SvelteVirtualList {items} mode="bottomToTop">
-                            {#snippet renderItem(item: Item, index: number)}
+                            {#snippet renderItem(item: Item, _index: number)}
                                 <div>
                                     {item.text}
                                 </div>
