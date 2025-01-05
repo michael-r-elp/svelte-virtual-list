@@ -89,6 +89,7 @@
         calculateTransformY,
         updateHeightAndScroll as utilsUpdateHeightAndScroll
     } from './utils/virtualList.js'
+    import { rafSchedule } from './utils/raf.js'
 
     // Core configuration props with default values
     const {
@@ -117,6 +118,10 @@
     let lastMeasuredIndex = $state(-1) // Tracks last measured item for optimization
     let heightUpdateTimeout: ReturnType<typeof setTimeout> | null = null
     let resizeObserver: ResizeObserver | null = null
+    let heightCache = $state<Record<number, number>>({}) // Cache for item heights
+    let isScrolling = $state(false) // Track scroll state
+    let chunkSize = $state(50) // Number of items to process at once
+    let processedItems = $state(0) // Track initialization progress
 
     /**
      * Calculates the average height of visible items to improve accuracy of virtual scrolling
@@ -134,20 +139,23 @@
             const visibleRange = visibleItems()
             const currentIndex = visibleRange.start
 
-            // Only recalculate if we're looking at different items
             if (currentIndex !== lastMeasuredIndex) {
                 const validElements = itemElements.filter((el) => el)
                 if (validElements.length > 0) {
-                    // Calculate average height from actual rendered elements
-                    const heights = validElements.map((el) => el.getBoundingClientRect().height)
+                    // Cache heights and calculate average only for new items
+                    validElements.forEach((el, i) => {
+                        const itemIndex = visibleRange.start + i
+                        if (!heightCache[itemIndex]) {
+                            heightCache[itemIndex] = el.getBoundingClientRect().height
+                        }
+                    })
+
+                    // Use cached heights for average calculation
+                    const heights = Object.values(heightCache)
                     const averageHeight = heights.reduce((sum, h) => sum + h, 0) / heights.length
 
-                    // Update only if there's a significant change
-                    if (
-                        averageHeight > 0 &&
-                        !isNaN(averageHeight) &&
-                        Math.abs(averageHeight - calculatedItemHeight) > 1
-                    ) {
+                    if (averageHeight > 0 && !isNaN(averageHeight) &&
+                        Math.abs(averageHeight - calculatedItemHeight) > 1) {
                         calculatedItemHeight = averageHeight
                         lastMeasuredIndex = currentIndex
                     }
@@ -156,7 +164,7 @@
 
             isCalculatingHeight = false
             heightUpdateTimeout = null
-        }, 200) // Debounce for 200ms
+        }, 200)
     }
 
     // Trigger height calculation when items are rendered
@@ -214,7 +222,14 @@
     // Update scroll position when user scrolls
     const handleScroll = () => {
         if (!BROWSER || !viewportElement) return
-        scrollTop = viewportElement.scrollTop
+
+        if (!isScrolling) {
+            isScrolling = true
+            rafSchedule(() => {
+                scrollTop = viewportElement.scrollTop
+                isScrolling = false
+            })
+        }
     }
 
     /**
@@ -289,6 +304,34 @@
             immediate
         )
     }
+
+    // Add new chunked initialization function
+    const initializeChunked = async () => {
+        if (!items.length) return
+
+        const processChunk = async (startIdx: number) => {
+            const endIdx = Math.min(startIdx + chunkSize, items.length)
+            processedItems = endIdx
+
+            if (endIdx < items.length) {
+                // Schedule next chunk
+                setTimeout(() => processChunk(endIdx), 0)
+            } else {
+                initialized = true
+            }
+        }
+
+        await processChunk(0)
+    }
+
+    // Modify the mount effect to use chunked initialization
+    $effect(() => {
+        if (BROWSER && items.length > 1000) {
+            initializeChunked()
+        } else {
+            initialized = true
+        }
+    })
 
     // Setup and cleanup
     onMount(() => {

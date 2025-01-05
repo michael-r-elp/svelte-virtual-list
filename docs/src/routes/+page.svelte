@@ -7,7 +7,7 @@
         text: string
     }
 
-    const items: Item[] = Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `Item ${i}` }))
+    const items: Item[] = Array.from({ length: 100000 }, (_, i) => ({ id: i, text: `Item ${i}` }))
 </script>
 
 <div class="h-full w-full">
