@@ -1,10 +1,11 @@
 <script lang="ts">
     import '../app.css'
     import { ModeWatcher } from 'mode-watcher'
-    import { page } from '$app/state'
+    // import { page } from '$app/state'
 
     const { children } = $props()
-    const imageLocation = `${page.url.origin}/`
+    // const imageLocation = `${page.url.origin}/`
+    const imageLocation = "./"
 
 </script>
 
