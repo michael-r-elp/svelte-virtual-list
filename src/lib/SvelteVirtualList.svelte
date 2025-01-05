@@ -223,7 +223,6 @@
                 mode,
                 containerElement,
                 viewportElement,
-                items,
                 calculatedItemHeight,
                 height,
                 scrollTop
