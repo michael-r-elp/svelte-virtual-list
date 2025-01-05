@@ -8,9 +8,6 @@
     }
 
     const items: Item[] = Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `Item ${i}` }))
-
-    let measureRef: HTMLElement
-    let itemHeight = 20 // default height
 </script>
 
 <div class="h-full w-full">
@@ -22,9 +19,9 @@
                         <Card.Title>Top to bottom</Card.Title>
                     </Card.Header>
                     <Card.Content class="flex flex-1 flex-col">
-                        <SvelteVirtualList {items} {itemHeight}>
+                        <SvelteVirtualList {items}>
                             {#snippet renderItem(item: Item, index: number)}
-                                <div bind:this={measureRef}>
+                                <div>
                                     {item.text}
                                 </div>
                             {/snippet}
@@ -38,9 +35,9 @@
                         <Card.Title>Bottom to top</Card.Title>
                     </Card.Header>
                     <Card.Content class="flex-1">
-                        <SvelteVirtualList {items} {itemHeight} mode="bottomToTop">
+                        <SvelteVirtualList {items} mode="bottomToTop">
                             {#snippet renderItem(item: Item, index: number)}
-                                <div bind:this={measureRef}>
+                                <div>
                                     {item.text}
                                 </div>
                             {/snippet}

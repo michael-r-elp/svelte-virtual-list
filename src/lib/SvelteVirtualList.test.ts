@@ -3,8 +3,17 @@ import { render, screen } from '@testing-library/svelte'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import SvelteVirtualList from './SvelteVirtualList.svelte'
 
+// Add ResizeObserver mock
+class ResizeObserverMock {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+}
+
 beforeEach(() => {
     vi.useFakeTimers()
+    // Add ResizeObserver to the global object
+    global.ResizeObserver = ResizeObserverMock
 })
 
 describe('testing initialization', () => {
