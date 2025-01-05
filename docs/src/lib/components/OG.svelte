@@ -24,16 +24,15 @@
 
 <div
     id="social-card"
-    class="relative overflow-hidden p-16 text-white flex flex-col"
+    class="relative overflow-hidden bg-[radial-gradient(circle_at_95%_95%,_#FF3E00_0%,_#54DBBC_40%,_#4AE3B6_70%,_#40D1A7_100%)] p-16 text-white flex flex-col"
     style:width="{activeDimensions.width}px"
     style:height="{activeDimensions.height}px"
-    style="background: radial-gradient(circle at 95% 95%, #FF3E00 0%, #54DBBC 40%, #4AE3B6 70%, #40D1A7 100%);"
 >
-    <div class="flex absolute inset-0 bg-black/5 backdrop-blur-[1px]"></div>
+    <div class="absolute inset-0 bg-black/5 backdrop-blur-[1px]"></div>
     <div class="relative flex h-full flex-col justify-between">
         <!-- Header Section -->
-        <div class="flex flex-col space-y-8">
-            <div class="flex flex-shrink-0 text-lg font-medium uppercase tracking-wider text-white/80">
+        <div class="space-y-8">
+            <div class="text-lg font-medium uppercase tracking-wider text-white/80">
                 {type === 'og' ? 'High Performance Virtual List' : 'Virtual List Component'}
             </div>
             <h1
@@ -58,7 +57,7 @@
             <div class="flex flex-wrap gap-4">
                 {#each features as feature}
                     <div
-                        class="flex flex-shrink-0 rounded-full bg-white/10 px-6 py-2 text-lg font-medium backdrop-blur-sm"
+                        class="rounded-full bg-white/10 px-6 py-2 text-lg font-medium backdrop-blur-sm"
                     >
                         {feature}
                     </div>
@@ -69,16 +68,16 @@
         <!-- Bottom Bar -->
         <div class="flex w-full items-end justify-between">
             <div
-                class="flex items-center rounded-full bg-white/10 px-6 py-3 backdrop-blur-sm flex-shrink-0"
+                class="flex items-center gap-1 rounded-full bg-white/10 px-6 py-3 backdrop-blur-sm"
             >
-                <img src="{url}/humanspeak-bubble.svg" alt="Logo" class="h-8 mr-2" />
+                <img src="{url}/humanspeak-bubble.svg" alt="Logo" class="h-8" />
                 <span class="text-xl font-medium">by Humanspeak</span>
             </div>
             <div
-                class="flex items-center  rounded-full bg-white/10 px-6 py-3 backdrop-blur-sm"
-
+                class="flex items-center gap-1 rounded-full bg-white/10 px-6 py-3 backdrop-blur-sm"
+                style="margin-right: -32px;"
             >
-                <img src="{url}/svelte-logo.svg" alt="Svelte" class="h-8 mr-2" />
+                <img src="{url}/svelte-logo.svg" alt="Svelte" class="h-8" />
                 <span class="text-xl font-medium">Built for Svelte 5</span>
             </div>
         </div>

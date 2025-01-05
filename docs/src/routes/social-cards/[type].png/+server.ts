@@ -4,19 +4,15 @@ import { render } from 'svelte/server'
 import satori from 'satori'
 import { html as toReactNode } from 'satori-html'
 
+const height = 630
+const width = 1200
+
 /** @type {import('./$types').RequestHandler} */
 export const GET = async ({ params, url, fetch }) => {
-    const type = params.type as 'og' | 'twitter'
-
-    // Get dimensions from OG component configuration
-    const dimensions = {
-        og: { width: 1200, height: 630 },
-        twitter: { width: 1200, height: 600 }
-    }[type]
-
+    const type = params.type
     const result = render(OG, {
         props: {
-            type,
+            type: type as 'og' | 'twitter',
             url: url.origin
         }
     })
@@ -63,14 +59,14 @@ export const GET = async ({ params, url, fetch }) => {
                     style: 'italic'
                 }
             ],
-            height: dimensions.height,
-            width: dimensions.width
+            height,
+            width
         })
 
         const resvg = new Resvg(svg, {
             fitTo: {
                 mode: 'width',
-                value: dimensions.width
+                value: width
             }
         })
 
