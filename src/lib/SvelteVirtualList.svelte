@@ -102,47 +102,98 @@
         calculateScrollPosition,
         calculateVisibleRange,
         calculateTransformY,
-        updateHeightAndScroll as utilsUpdateHeightAndScroll
+        updateHeightAndScroll as utilsUpdateHeightAndScroll,
+        calculateAverageHeight,
+        processChunked
     } from './utils/virtualList.js'
     import { rafSchedule } from './utils/raf.js'
 
-    // Core configuration props with default values
+    /**
+     * Core configuration props with default values
+     * @type {SvelteVirtualListProps}
+     */
     const {
-        items = [],
-        defaultEstimatedItemHeight = 40,
-        debug = false,
-        renderItem,
-        containerClass,
-        viewportClass,
-        contentClass,
-        itemsClass,
-        debugFunction,
-        mode = 'topToBottom',
-        bufferSize = 20
+        items = [], // Array of items to be rendered in the virtual list
+        defaultEstimatedItemHeight = 40, // Initial height estimate for items before measurement
+        debug = false, // Enable debug logging
+        renderItem, // Function to render each item
+        containerClass, // Custom class for the container element
+        viewportClass, // Custom class for the viewport element
+        contentClass, // Custom class for the content wrapper
+        itemsClass, // Custom class for the items wrapper
+        debugFunction, // Custom debug logging function
+        mode = 'topToBottom', // Scroll direction mode
+        bufferSize = 20 // Number of items to render outside visible area
     }: SvelteVirtualListProps = $props()
 
-    // DOM references and state management
-    let containerElement: HTMLElement
-    let viewportElement: HTMLElement
-    const itemElements = $state<HTMLElement[]>([]) // Tracks rendered item elements for height calculations
-    let scrollTop = $state(0) // Current scroll position
-    let initialized = $state(false) // Tracks if initial setup is complete
-    let height = $state(0) // Container height
-    let calculatedItemHeight = $state(defaultEstimatedItemHeight) // Current average item height
-    let isCalculatingHeight = $state(false) // Prevents concurrent height calculations
-    let lastMeasuredIndex = $state(-1) // Tracks last measured item for optimization
-    let heightUpdateTimeout: ReturnType<typeof setTimeout> | null = null
-    let resizeObserver: ResizeObserver | null = null
-    let heightCache = $state<Record<number, number>>({}) // Cache for item heights
-    let isScrolling = $state(false) // Track scroll state
-    let chunkSize = $state(50) // Number of items to process at once
-    let processedItems = $state(0) // Track initialization progress
+    /**
+     * DOM References and Core State
+     */
+    let containerElement: HTMLElement // Reference to the main container element
+    let viewportElement: HTMLElement // Reference to the scrollable viewport element
+    const itemElements = $state<HTMLElement[]>([]) // Array of rendered item element references
 
     /**
-     * Calculates the average height of visible items to improve accuracy of virtual scrolling
-     * Uses debouncing to prevent excessive calculations
+     * Scroll and Height Management
      */
-    const calculateAverageHeight = () => {
+    let scrollTop = $state(0) // Current scroll position
+    let height = $state(0) // Container height
+    let calculatedItemHeight = $state(defaultEstimatedItemHeight) // Current average item height
+
+    /**
+     * State Flags and Control
+     */
+    let initialized = $state(false) // Tracks if initial setup is complete
+    let isCalculatingHeight = $state(false) // Prevents concurrent height calculations
+    let isScrolling = $state(false) // Tracks active scrolling state
+    let lastMeasuredIndex = $state(-1) // Index of last measured item
+
+    /**
+     * Timers and Observers
+     */
+    let heightUpdateTimeout: ReturnType<typeof setTimeout> | null = null // Debounce timer for height updates
+    let resizeObserver: ResizeObserver | null = null // Watches for container size changes
+
+    /**
+     * Performance Optimization State
+     */
+    let heightCache = $state<Record<number, number>>({}) // Cache of measured item heights
+    let chunkSize = $state(50) // Number of items to process in each chunk
+    let processedItems = $state(0) // Number of items processed during initialization
+
+    /**
+     * Calculates and updates the average height of visible items with debouncing.
+     *
+     * This function optimizes performance by:
+     * - Debouncing calculations to prevent excessive DOM reads
+     * - Caching item heights to minimize recalculations
+     * - Only updating when significant changes are detected
+     *
+     * Implementation details:
+     * - Uses a 200ms debounce timeout
+     * - Tracks calculation state to prevent concurrent updates
+     * - Caches heights in heightCache for reuse
+     * - Only updates if height difference > 1px
+     *
+     * State interactions:
+     * - Updates calculatedItemHeight
+     * - Updates lastMeasuredIndex
+     * - Modifies heightCache
+     * - Uses/sets isCalculatingHeight flag
+     *
+     * @example
+     * ```typescript
+     * // Automatically called when items are rendered
+     * $effect(() => {
+     *     if (BROWSER && itemElements.length > 0 && !isCalculatingHeight) {
+     *         calculateAverageHeightDebounced()
+     *     }
+     * })
+     * ```
+     *
+     * @returns {void}
+     */
+    const calculateAverageHeightDebounced = () => {
         if (!BROWSER || isCalculatingHeight || heightUpdateTimeout) return
         isCalculatingHeight = true
 
@@ -155,28 +206,19 @@
             const currentIndex = visibleRange.start
 
             if (currentIndex !== lastMeasuredIndex) {
-                const validElements = itemElements.filter((el) => el)
-                if (validElements.length > 0) {
-                    // Cache heights and calculate average only for new items
-                    validElements.forEach((el, i) => {
-                        const itemIndex = visibleRange.start + i
-                        if (!heightCache[itemIndex]) {
-                            heightCache[itemIndex] = el.getBoundingClientRect().height
-                        }
-                    })
+                const { newHeight, newLastMeasuredIndex, updatedHeightCache } =
+                    calculateAverageHeight(
+                        itemElements,
+                        visibleRange,
+                        heightCache,
+                        lastMeasuredIndex,
+                        calculatedItemHeight
+                    )
 
-                    // Use cached heights for average calculation
-                    const heights = Object.values(heightCache)
-                    const averageHeight = heights.reduce((sum, h) => sum + h, 0) / heights.length
-
-                    if (
-                        averageHeight > 0 &&
-                        !isNaN(averageHeight) &&
-                        Math.abs(averageHeight - calculatedItemHeight) > 1
-                    ) {
-                        calculatedItemHeight = averageHeight
-                        lastMeasuredIndex = currentIndex
-                    }
+                if (Math.abs(newHeight - calculatedItemHeight) > 1) {
+                    calculatedItemHeight = newHeight
+                    lastMeasuredIndex = newLastMeasuredIndex
+                    heightCache = updatedHeightCache
                 }
             }
 
@@ -188,7 +230,7 @@
     // Trigger height calculation when items are rendered
     $effect(() => {
         if (BROWSER && itemElements.length > 0 && !isCalculatingHeight) {
-            calculateAverageHeight()
+            calculateAverageHeightDebounced()
         }
     })
 
@@ -222,7 +264,25 @@
         }
     })
 
-    // Calculate which items should be visible based on current scroll position
+    /**
+     * Calculates the range of items that should be rendered based on current scroll position.
+     *
+     * This derived calculation determines which items should be visible in the viewport,
+     * including the buffer zone. It takes into account:
+     * - Current scroll position
+     * - Viewport height
+     * - Item height estimates
+     * - Buffer size
+     * - Scroll direction mode
+     *
+     * @example
+     * ```typescript
+     * const range = visibleItems()
+     * console.log(`Rendering items from ${range.start} to ${range.end}`)
+     * ```
+     *
+     * @returns {{ start: number, end: number }} Object containing start and end indices of visible items
+     */
     const visibleItems = $derived(() => {
         if (!items.length) return { start: 0, end: 0 }
         const viewportHeight = height || 0
@@ -237,7 +297,27 @@
         )
     })
 
-    // Update scroll position when user scrolls
+    /**
+     * Handles scroll events in the viewport using requestAnimationFrame for performance.
+     *
+     * This function debounces scroll events and updates the scrollTop state only when
+     * necessary to prevent excessive re-renders. It uses RAF scheduling to ensure
+     * smooth scrolling performance.
+     *
+     * Implementation details:
+     * - Uses isScrolling flag to prevent multiple RAF calls
+     * - Updates scrollTop state only when scrolling has settled
+     * - Browser-only functionality
+     *
+     * @example
+     * ```svelte
+     * <div onscroll={handleScroll}>
+     *   <!-- scrollable content -->
+     * </div>
+     * ```
+     *
+     * @returns {void}
+     */
     const handleScroll = () => {
         if (!BROWSER || !viewportElement) return
 
@@ -323,23 +403,42 @@
         )
     }
 
-    // Add new chunked initialization function
+    /**
+     * Initializes large datasets in chunks to prevent UI blocking.
+     *
+     * This function processes items in smaller chunks using setTimeout to yield
+     * to the main thread, allowing other UI operations to remain responsive.
+     * Progress is tracked and reported through the processedItems state.
+     *
+     * For datasets larger than 1000 items, this method is automatically used
+     * instead of immediate initialization. The chunk size is controlled by the
+     * component's chunkSize state (default: 50).
+     *
+     * @async
+     * @example
+     * ```typescript
+     * // Component initialization
+     * $effect(() => {
+     *     if (BROWSER && items.length > 1000) {
+     *         initializeChunked()
+     *     } else {
+     *         initialized = true
+     *     }
+     * })
+     * ```
+     *
+     * @throws {Error} If processChunked fails to complete initialization
+     * @returns {Promise<void>} Resolves when all chunks have been processed
+     */
     const initializeChunked = async () => {
         if (!items.length) return
 
-        const processChunk = async (startIdx: number) => {
-            const endIdx = Math.min(startIdx + chunkSize, items.length)
-            processedItems = endIdx
-
-            if (endIdx < items.length) {
-                // Schedule next chunk
-                setTimeout(() => processChunk(endIdx), 0)
-            } else {
-                initialized = true
-            }
-        }
-
-        await processChunk(0)
+        await processChunked(
+            items,
+            chunkSize,
+            (processed) => (processedItems = processed),
+            () => (initialized = true)
+        )
     }
 
     // Modify the mount effect to use chunked initialization

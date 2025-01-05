@@ -131,3 +131,73 @@ export const updateHeightAndScroll = (
         }
     }
 }
+
+/**
+ * Calculates the average height of visible items
+ * Uses cached heights to prevent unnecessary recalculations
+ */
+export const calculateAverageHeight = (
+    itemElements: HTMLElement[],
+    visibleRange: { start: number },
+    heightCache: Record<number, number>,
+    lastMeasuredIndex: number,
+    currentItemHeight: number
+): {
+    newHeight: number
+    newLastMeasuredIndex: number
+    updatedHeightCache: Record<number, number>
+} => {
+    const validElements = itemElements.filter((el) => el)
+    if (validElements.length === 0) {
+        return {
+            newHeight: currentItemHeight,
+            newLastMeasuredIndex: lastMeasuredIndex,
+            updatedHeightCache: heightCache
+        }
+    }
+
+    const newHeightCache = { ...heightCache }
+
+    // Cache heights for new items
+    validElements.forEach((el, i) => {
+        const itemIndex = visibleRange.start + i
+        if (!newHeightCache[itemIndex]) {
+            newHeightCache[itemIndex] = el.getBoundingClientRect().height
+        }
+    })
+
+    // Calculate average from cached heights
+    const heights = Object.values(newHeightCache)
+    const averageHeight = heights.reduce((sum, h) => sum + h, 0) / heights.length
+
+    return {
+        newHeight: averageHeight > 0 && !isNaN(averageHeight) ? averageHeight : currentItemHeight,
+        newLastMeasuredIndex: visibleRange.start,
+        updatedHeightCache: newHeightCache
+    }
+}
+
+/**
+ * Processes items in chunks for large datasets
+ */
+export const processChunked = async (
+    items: any[],
+    chunkSize: number,
+    onProgress: (processed: number) => void,
+    onComplete: () => void
+) => {
+    if (!items.length) return
+
+    const processChunk = async (startIdx: number) => {
+        const endIdx = Math.min(startIdx + chunkSize, items.length)
+        onProgress(endIdx)
+
+        if (endIdx < items.length) {
+            setTimeout(() => processChunk(endIdx), 0)
+        } else {
+            onComplete()
+        }
+    }
+
+    await processChunk(0)
+}
