@@ -37,6 +37,49 @@
 -->
 
 <script lang="ts">
+    /**
+     * SvelteVirtualList Implementation Journey
+     *
+     * Evolution & Architecture:
+     * 1. Initial Implementation
+     *    - Basic virtual scrolling with fixed height items
+     *    - Single direction scrolling (top-to-bottom)
+     *    - Simple viewport calculations
+     *
+     * 2. Dynamic Height Enhancement
+     *    - Added dynamic height calculation system
+     *    - Implemented debounced measurements
+     *    - Created height averaging mechanism for performance
+     *
+     * 3. Bidirectional Scrolling
+     *    - Added bottomToTop mode
+     *    - Solved complex initialization issues with flexbox
+     *    - Implemented careful scroll position management
+     *
+     * 4. Performance Optimizations
+     *    - Added element recycling through keyed each blocks
+     *    - Implemented RAF for smooth animations
+     *    - Optimized DOM updates with transform translations
+     *
+     * 5. Stability Improvements
+     *    - Added ResizeObserver for responsive updates
+     *    - Implemented proper cleanup on component destruction
+     *    - Added debug mode for development assistance
+     *
+     * Technical Challenges Solved:
+     * - Bottom-to-top scrolling in flexbox layouts
+     * - Dynamic height calculations without layout thrashing
+     * - Smooth scrolling on various devices
+     * - Memory management for large lists
+     * - Browser compatibility issues
+     *
+     * Current Architecture:
+     * - Four-layer DOM structure for optimal performance
+     * - State management using Svelte 5's $state
+     * - Reactive height and scroll calculations
+     * - Configurable buffer zones for smooth scrolling
+     */
+
     import { onMount } from 'svelte'
     import { BROWSER } from 'esm-env'
     import type { SvelteVirtualListDebugInfo, SvelteVirtualListProps } from './types.js'
