@@ -40,6 +40,12 @@
     import { onMount } from 'svelte'
     import { BROWSER } from 'esm-env'
     import type { DebugInfo, Props } from './types.js'
+    import {
+        calculateScrollPosition,
+        calculateVisibleRange,
+        calculateTransformY,
+        updateHeightAndScroll as utilsUpdateHeightAndScroll
+    } from './utils/virtualList.js'
 
     const {
         items = [],
@@ -139,47 +145,22 @@
 
     const visibleItems = $derived(() => {
         if (!items.length) return { start: 0, end: 0 }
-
         const viewportHeight = height || 0
 
-        const result =
-            mode === 'bottomToTop'
-                ? (() => {
-                      const visibleCount = Math.ceil(viewportHeight / calculatedItemHeight) + 1
-                      const bottomIndex =
-                          items.length - Math.floor(scrollTop / calculatedItemHeight)
-                      // Add buffer to both ends
-                      const start = Math.max(0, bottomIndex - visibleCount - bufferSize)
-                      const end = Math.min(items.length, bottomIndex + bufferSize)
-                      return { start, end }
-                  })()
-                : (() => {
-                      const start = Math.floor(scrollTop / calculatedItemHeight)
-                      const end = Math.min(
-                          items.length,
-                          start + Math.ceil(viewportHeight / calculatedItemHeight) + 1
-                      )
-                      // Add buffer to both ends
-                      return {
-                          start: Math.max(0, start - bufferSize),
-                          end: Math.min(items.length, end + bufferSize)
-                      }
-                  })()
-
-        return result
+        return calculateVisibleRange(
+            scrollTop,
+            viewportHeight,
+            calculatedItemHeight,
+            items.length,
+            bufferSize,
+            mode
+        )
     })
 
     // Handle scroll updates only in BROWSER
     const handleScroll = () => {
         if (!BROWSER || !viewportElement) return
         scrollTop = viewportElement.scrollTop
-    }
-
-    // Update height when container is resized
-    const updateHeight = () => {
-        if (containerElement) {
-            height = containerElement.getBoundingClientRect().height
-        }
     }
 
     /**
@@ -197,59 +178,63 @@
      * @param immediate - Whether to skip the delay (used for resize events)
      */
     const updateHeightAndScroll = (immediate = false) => {
-        // For the initial setup in bottomToTop mode
         if (!initialized && mode === 'bottomToTop') {
-            // First pass - get initial layout
             setTimeout(() => {
                 if (containerElement) {
                     const initialHeight = containerElement.getBoundingClientRect().height
                     height = initialHeight
 
-                    // Second pass - ensure layout is stable
                     setTimeout(() => {
                         if (containerElement && viewportElement) {
                             const finalHeight = containerElement.getBoundingClientRect().height
                             height = finalHeight
-                            const totalHeight = items.length * calculatedItemHeight
 
-                            // Force a reflow before setting scroll position
+                            const targetScrollTop = calculateScrollPosition(
+                                items.length,
+                                calculatedItemHeight,
+                                finalHeight
+                            )
+
                             void containerElement.offsetHeight
 
-                            viewportElement.scrollTop = totalHeight - finalHeight
-                            scrollTop = totalHeight - finalHeight
+                            viewportElement.scrollTop = targetScrollTop
+                            scrollTop = targetScrollTop
 
-                            // Final check to ensure correct position
                             requestAnimationFrame(() => {
                                 if (viewportElement) {
                                     const currentScroll = viewportElement.scrollTop
                                     if (currentScroll !== scrollTop) {
-                                        viewportElement.scrollTop = totalHeight - finalHeight
-                                        scrollTop = totalHeight - finalHeight
+                                        viewportElement.scrollTop = targetScrollTop
+                                        scrollTop = targetScrollTop
                                     }
                                     initialized = true
                                 }
                             })
                         }
-                    }, 100) // Increased delay for second pass
+                    }, 100)
                 }
-            }, 100) // Increased delay for first pass
+            }, 100)
             return
         }
 
-        // Handle resize events
-        if (immediate) {
-            if (containerElement && viewportElement && initialized) {
-                const newHeight = containerElement.getBoundingClientRect().height
-                height = newHeight
-
-                if (mode === 'bottomToTop') {
-                    const visibleIndex = Math.floor(scrollTop / calculatedItemHeight)
-                    const newScrollTop = visibleIndex * calculatedItemHeight
-                    viewportElement.scrollTop = newScrollTop
-                    scrollTop = newScrollTop
-                }
-            }
-        }
+        utilsUpdateHeightAndScroll(
+            {
+                initialized,
+                mode,
+                containerElement,
+                viewportElement,
+                items,
+                calculatedItemHeight,
+                height,
+                scrollTop
+            },
+            {
+                setHeight: (h) => (height = h),
+                setScrollTop: (st) => (scrollTop = st),
+                setInitialized: (i) => (initialized = i)
+            },
+            immediate
+        )
     }
 
     onMount(() => {
@@ -297,9 +282,13 @@
             <div
                 id="virtual-list-items"
                 class={itemsClass ?? 'virtual-list-items'}
-                style:transform="translateY({mode === 'bottomToTop'
-                    ? (items.length - visibleItems().end) * calculatedItemHeight
-                    : visibleItems().start * calculatedItemHeight}px)"
+                style:transform="translateY({calculateTransformY(
+                    mode,
+                    items.length,
+                    visibleItems().end,
+                    visibleItems().start,
+                    calculatedItemHeight
+                )}px)"
             >
                 {#each mode === 'bottomToTop' ? items
                           .slice(visibleItems().start, visibleItems().end)
