@@ -25,7 +25,7 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://virtuallist.svelte.page" />
-    <meta property="og:image" content="{imageLocation}svelte-virtual-list-opengraph.png" />
+    <meta property="og:image" content="{imageLocation}social-cards/og.png" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -34,7 +34,7 @@
         name="twitter:description"
         content="High-performance virtual scrolling for Svelte 5 applications"
     />
-    <meta name="twitter:image" content="{imageLocation}svelte-virtual-list-twitter.png" />
+    <meta name="twitter:image" content="{imageLocation}social-cards/twitter.png" />
 
     <!-- Keywords -->
     <meta
