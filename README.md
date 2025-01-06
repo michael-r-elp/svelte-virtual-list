@@ -217,21 +217,31 @@ No manual intervention is needed when item contents or dimensions change.
     }))
 </script>
 
-<SvelteVirtualList
-    items={messages}
-    mode="bottomToTop"
-    containerClass="h-screen"
-    viewportClass="bg-gray-100"
->
-    {#snippet renderItem(message)}
-        <div class="p-4 rounded-lg shadow-sm">
-            <p>{message.text}</p>
-            <span class="text-sm text-gray-500">
-                {message.timestamp.toLocaleString()}
-            </span>
-        </div>
-    {/snippet}
-</SvelteVirtualList>
+<div style="height: 500px;">
+    <SvelteVirtualList items={messages} mode="bottomToTop" debug>
+        {#snippet renderItem(message)}
+            <div class="message-container">
+                <p>{message.text}</p>
+                <span class="timestamp">
+                    {message.timestamp.toLocaleString()}
+                </span>
+            </div>
+        {/snippet}
+    </SvelteVirtualList>
+</div>
+
+<style>
+    .message-container {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .timestamp {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+</style>
 ```
 
 ## Performance Considerations

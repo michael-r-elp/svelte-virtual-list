@@ -57,4 +57,5 @@ export type SvelteVirtualListDebugInfo = {
     totalItems: number
     visibleItemsCount: number
     processedItems: number
+    averageItemHeight: number
 }
