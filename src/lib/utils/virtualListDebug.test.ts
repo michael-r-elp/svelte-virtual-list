@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createDebugInfo, shouldShowDebugInfo } from './virtualListDebug'
+import { createDebugInfo, shouldShowDebugInfo } from './virtualListDebug.js'
 
 describe('virtualListDebug utilities', () => {
     describe('shouldShowDebugInfo', () => {
