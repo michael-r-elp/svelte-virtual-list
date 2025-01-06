@@ -15,11 +15,32 @@ describe('calculateScrollPosition', () => {
     })
 
     it('should handle edge case with zero items', () => {
-        expect(calculateScrollPosition(0, 30, 300)).toBe(-300)
+        expect(calculateScrollPosition(0, 30, 300)).toBe(0)
     })
 
     it('should handle case when container is larger than content', () => {
-        expect(calculateScrollPosition(5, 30, 300)).toBe(-150)
+        expect(calculateScrollPosition(5, 30, 300)).toBe(0)
+    })
+
+    it('should handle negative item count gracefully', () => {
+        expect(calculateScrollPosition(-1, 30, 300)).toBe(0)
+    })
+
+    it('should handle zero item height', () => {
+        expect(calculateScrollPosition(100, 0, 300)).toBe(0)
+    })
+
+    it('should handle negative item height gracefully', () => {
+        expect(calculateScrollPosition(100, -10, 300)).toBe(0)
+    })
+
+    it('should handle zero container height', () => {
+        expect(calculateScrollPosition(100, 30, 0)).toBe(3000)
+    })
+
+    it('should handle very large numbers without overflow', () => {
+        const largeNumber = Number.MAX_SAFE_INTEGER
+        expect(calculateScrollPosition(largeNumber, 1, 1000)).toBe(Number.MAX_SAFE_INTEGER - 1000)
     })
 })
 

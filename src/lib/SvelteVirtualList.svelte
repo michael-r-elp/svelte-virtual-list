@@ -234,6 +234,24 @@
         }
     })
 
+    // Add new effect to handle height changes
+    $effect(() => {
+        if (BROWSER && initialized && mode === 'bottomToTop' && viewportElement) {
+            const totalHeight = Math.max(0, items.length * calculatedItemHeight)
+            const targetScrollTop = Math.max(0, totalHeight - height)
+
+            // Only update if the difference is significant
+            if (Math.abs(viewportElement.scrollTop - targetScrollTop) > calculatedItemHeight) {
+                requestAnimationFrame(() => {
+                    if (viewportElement) {
+                        viewportElement.scrollTop = targetScrollTop
+                        scrollTop = targetScrollTop
+                    }
+                })
+            }
+        }
+    })
+
     // Update container height when element is mounted
     $effect(() => {
         if (BROWSER && containerElement) {
@@ -251,14 +269,24 @@
             items.length &&
             !initialized
         ) {
-            const totalHeight = items.length * calculatedItemHeight
+            const totalHeight = Math.max(0, items.length * calculatedItemHeight)
+            const targetScrollTop = Math.max(0, totalHeight - height)
+
             // Add delay to ensure layout is complete
             setTimeout(() => {
                 if (viewportElement) {
                     // Start at the bottom for bottom-to-top mode
-                    viewportElement.scrollTop = totalHeight - height
-                    scrollTop = totalHeight - height
-                    initialized = true
+                    viewportElement.scrollTop = targetScrollTop
+                    scrollTop = targetScrollTop
+
+                    // Double-check the scroll position after a frame
+                    requestAnimationFrame(() => {
+                        if (viewportElement && viewportElement.scrollTop !== targetScrollTop) {
+                            viewportElement.scrollTop = targetScrollTop
+                            scrollTop = targetScrollTop
+                        }
+                        initialized = true
+                    })
                 }
             }, 50)
         }
@@ -525,7 +553,8 @@
                             startIndex: visibleItems().start,
                             endIndex: visibleItems().end,
                             totalItems: items.length,
-                            processedItems
+                            processedItems,
+                            averageItemHeight: calculatedItemHeight
                         }}
                         {debugFunction
                             ? debugFunction(debugInfo)

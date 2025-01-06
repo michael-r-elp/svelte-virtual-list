@@ -18,8 +18,9 @@ export const calculateScrollPosition = (
     itemHeight: number,
     containerHeight: number
 ) => {
+    if (totalItems === 0) return 0
     const totalHeight = totalItems * itemHeight
-    return totalHeight - containerHeight
+    return Math.max(0, totalHeight - containerHeight)
 }
 
 /**
