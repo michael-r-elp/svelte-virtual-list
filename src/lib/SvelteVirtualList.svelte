@@ -107,6 +107,7 @@
         processChunked
     } from './utils/virtualList.js'
     import { rafSchedule } from './utils/raf.js'
+    import { shouldShowDebugInfo, createDebugInfo } from './utils/virtualListDebug.js'
 
     /**
      * Core configuration props with default values
@@ -160,6 +161,9 @@
     let heightCache = $state<Record<number, number>>({}) // Cache of measured item heights
     const chunkSize = $state(50) // Number of items to process in each chunk
     let processedItems = $state(0) // Number of items processed during initialization
+
+    let prevVisibleRange = $state<{ start: number; end: number } | null>(null)
+    let prevHeight = $state<number>(0)
 
     /**
      * Calculates and updates the average height of visible items with debouncing.
@@ -501,6 +505,14 @@
             }
         }
     })
+
+    // Add the effect in the script section
+    $effect(() => {
+        if (debug) {
+            prevVisibleRange = visibleItems()
+            prevHeight = calculatedItemHeight
+        }
+    })
 </script>
 
 <!--
@@ -546,16 +558,14 @@
                 {#each mode === 'bottomToTop' ? items
                           .slice(visibleItems().start, visibleItems().end)
                           .reverse() : items.slice(visibleItems().start, visibleItems().end) as currentItem, i (currentItem?.id ?? i)}
-                    <!-- Debug output for first item if debug mode is enabled -->
-                    {#if debug && i === 0}
-                        {@const debugInfo: SvelteVirtualListDebugInfo = {
-                            visibleItemsCount: visibleItems().end - visibleItems().start,
-                            startIndex: visibleItems().start,
-                            endIndex: visibleItems().end,
-                            totalItems: items.length,
+                    <!-- Only debug when visible range or average height changes -->
+                    {#if debug && i === 0 && shouldShowDebugInfo(prevVisibleRange, visibleItems(), prevHeight, calculatedItemHeight)}
+                        {@const debugInfo = createDebugInfo(
+                            visibleItems(),
+                            items.length,
                             processedItems,
-                            averageItemHeight: calculatedItemHeight
-                        }}
+                            calculatedItemHeight
+                        )}
                         {debugFunction
                             ? debugFunction(debugInfo)
                             : console.log('Virtual List Debug:', debugInfo)}
