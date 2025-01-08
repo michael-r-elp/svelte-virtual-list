@@ -25,6 +25,7 @@ export type SvelteVirtualListMode = 'topToBottom' | 'bottomToTop'
  * @property {SvelteVirtualListMode} [mode='topToBottom'] - Determines the scroll and render direction.
  * @property {Snippet<[item: any, index: number]>} renderItem - Svelte snippet function that defines
  *     how each item should be rendered. Receives the item and its index as arguments.
+ * @property {string} [testId] - Base test ID for component elements to facilitate testing.
  * @property {string} [viewportClass] - CSS class to apply to the scrollable viewport element.
  */
 export type SvelteVirtualListProps = {
@@ -38,6 +39,7 @@ export type SvelteVirtualListProps = {
     itemsClass?: string
     mode?: SvelteVirtualListMode
     renderItem: Snippet<[item: any, index: number]> // eslint-disable-line @typescript-eslint/no-explicit-any
+    testId?: string
     viewportClass?: string
 }
 

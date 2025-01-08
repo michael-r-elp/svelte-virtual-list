@@ -15,6 +15,7 @@
     - `contentClass` - Custom class for content wrapper
     - `itemsClass` - Custom class for items wrapper
     - `debugFunction` - Custom debug logging function
+    - `testId` - Base test ID for component elements
 
     Usage:
     ```svelte
@@ -150,7 +151,8 @@
         itemsClass, // Custom class for the items wrapper
         debugFunction, // Custom debug logging function
         mode = 'topToBottom', // Scroll direction mode
-        bufferSize = 20 // Number of items to render outside visible area
+        bufferSize = 20, // Number of items to render outside visible area
+        testId // Base test ID for component elements (undefined = no data-testid attributes)
     }: SvelteVirtualListProps = $props()
 
     /**
@@ -550,14 +552,14 @@
 -->
 <div
     id="virtual-list-container"
-    data-testid="virtual-list-container"
+    {...testId ? { 'data-testid': `${testId}-container` } : {}}
     class={containerClass ?? 'virtual-list-container'}
     bind:this={containerElement}
 >
     <!-- Viewport handles scrolling -->
     <div
         id="virtual-list-viewport"
-        data-testid="virtual-list-viewport"
+        {...testId ? { 'data-testid': `${testId}-viewport` } : {}}
         class={viewportClass ?? 'virtual-list-viewport'}
         bind:this={viewportElement}
         onscroll={handleScroll}
@@ -565,13 +567,14 @@
         <!-- Content provides full scrollable height -->
         <div
             id="virtual-list-content"
+            {...testId ? { 'data-testid': `${testId}-content` } : {}}
             class={contentClass ?? 'virtual-list-content'}
-            data-testid="virtual-list-content"
             style:height="{Math.max(height, items.length * calculatedItemHeight)}px"
         >
             <!-- Items container is translated to show correct items -->
             <div
                 id="virtual-list-items"
+                {...testId ? { 'data-testid': `${testId}-items` } : {}}
                 class={itemsClass ?? 'virtual-list-items'}
                 style:transform="translateY({calculateTransformY(
                     mode,
