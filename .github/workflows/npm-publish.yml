@@ -12,7 +12,20 @@ on:
             - 'docs/**'
             - 'PRD.md'
             - 'README.md'
-    workflow_dispatch: # Allows manual triggering
+    workflow_dispatch:
+        inputs:
+            version_bump:
+                description: 'Version bump type (major/minor/patch)'
+                required: true
+                type: choice
+                options:
+                    - patch
+                    - minor
+                    - major
+            custom_message:
+                description: 'Release message'
+                required: false
+                type: string
 
 jobs:
     # 3. Testing jobs (grouped together)
@@ -100,7 +113,8 @@ jobs:
         needs: [build, playwright-tests, coverage-report]
         if: |
             (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
-            (github.event_name == 'push' && github.ref == 'refs/heads/main')
+            (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+            (github.event_name == 'workflow_dispatch')
         runs-on: ubuntu-latest
         permissions:
             contents: write
@@ -131,8 +145,21 @@ jobs:
               env:
                   HAS_MAJOR: ${{ contains(github.event.pull_request.labels.*.name, 'major') }}
                   HAS_MINOR: ${{ contains(github.event.pull_request.labels.*.name, 'minor') }}
+                  INPUT_VERSION: ${{ github.event.inputs.version_bump }}
               run: |
-                  if [ "$HAS_MAJOR" = "true" ]; then
+                  # Function to validate version bump type
+                  validate_bump_type() {
+                    local bump="$1"
+                    case "$bump" in
+                      "major"|"minor"|"patch") echo "$bump" ;;
+                      *) echo "patch" ;;
+                    esac
+                  }
+
+                  # Determine and validate bump type
+                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                    BUMP_TYPE=$(validate_bump_type "$INPUT_VERSION")
+                  elif [ "$HAS_MAJOR" = "true" ]; then
                     BUMP_TYPE="major"
                   elif [ "$HAS_MINOR" = "true" ]; then
                     BUMP_TYPE="minor"
@@ -140,16 +167,7 @@ jobs:
                     BUMP_TYPE="patch"
                   fi
 
-                  # Validate that bump type is one of the allowed values
-                  case "$BUMP_TYPE" in
-                    "major"|"minor"|"patch")
-                      echo "bump=$BUMP_TYPE" >> $GITHUB_OUTPUT
-                      ;;
-                    *)
-                      echo "Invalid version bump type"
-                      exit 1
-                      ;;
-                  esac
+                  echo "bump=$BUMP_TYPE" >> $GITHUB_OUTPUT
 
             - name: Import GPG key
               id: import_gpg
@@ -227,9 +245,9 @@ jobs:
                   name: Release ${{ steps.version.outputs.new_version }}
                   body: |
                       Changes in this Release
-                      - ${{ github.event.pull_request.title }}
+                      ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.custom_message || github.event.pull_request.title }}
 
-                      For more details, see the [Pull Request](${{ github.event.pull_request.html_url }})
+                      ${{ github.event_name == 'pull_request' && format('For more details, see the [Pull Request]({0})', github.event.pull_request.html_url) || '' }}
                   draft: false
                   prerelease: false
               env:
