@@ -12,6 +12,7 @@ on:
             - 'docs/**'
             - 'PRD.md'
             - 'README.md'
+    workflow_dispatch: # Allows manual triggering
 
 jobs:
     # 3. Testing jobs (grouped together)
