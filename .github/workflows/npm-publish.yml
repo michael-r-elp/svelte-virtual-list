@@ -168,6 +168,7 @@ jobs:
               env:
                   EVENT_NAME: ${{ github.event_name }}
                   HAS_SKIP_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'skip-publish') }}
+                  INPUT_VERSION: ${{ github.event.inputs.version_bump }}
               run: |
                   # Validate event name first
                   if [[ "$EVENT_NAME" != "pull_request" && "$EVENT_NAME" != "workflow_dispatch" ]]; then
@@ -175,9 +176,12 @@ jobs:
                     exit 1
                   fi
 
-                  # Use environment variable for safer comparison
+                  # Check skip conditions
                   if [[ "$EVENT_NAME" == "pull_request" && "$HAS_SKIP_LABEL" == "true" ]]; then
                     echo "Publishing skipped due to skip-publish label"
+                    echo "should_publish=false" >> $GITHUB_OUTPUT
+                  elif [[ "$EVENT_NAME" == "workflow_dispatch" && "$INPUT_VERSION" == "skip" ]]; then
+                    echo "Publishing skipped via manual selection"
                     echo "should_publish=false" >> $GITHUB_OUTPUT
                   else
                     echo "should_publish=true" >> $GITHUB_OUTPUT
