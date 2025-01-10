@@ -55,6 +55,14 @@ jobs:
             - name: Test
               run: npm test --coverage
 
+            - name: Upload Vitest Results
+              if: always()
+              uses: trunk-io/analytics-uploader@main
+              with:
+                  junit-paths: 'junit-vitest.xml'
+                  org-slug: ${{ secrets.TRUNK_ORG_SLUG }}
+                  token: ${{ secrets.TRUNK_TOKEN }}
+
             - name: Upload coverage to Coveralls
               uses: coverallsapp/github-action@v2
               with:
@@ -80,15 +88,28 @@ jobs:
               with:
                   persist-credentials: false
                   token: ${{ secrets.ACTIONS_KEY }}
+
             - uses: actions/setup-node@v4
               with:
                   node-version: 22
+
             - name: Install dependencies
               run: npm ci
+
             - name: Install Playwright Browsers
               run: npx playwright install --with-deps
+
             - name: Run Playwright tests
               run: npm run test:e2e
+
+            - name: Upload Playwright Results
+              if: always()
+              uses: trunk-io/analytics-uploader@main
+              with:
+                  junit-paths: 'junit-playwright.xml'
+                  org-slug: ${{ secrets.TRUNK_ORG_SLUG }}
+                  token: ${{ secrets.TRUNK_TOKEN }}
+
             - uses: actions/upload-artifact@v4
               if: always()
               with:
@@ -112,8 +133,9 @@ jobs:
     publish-github-packages:
         needs: [build, playwright-tests, coverage-report]
         if: |
-            (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
-            (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+            (github.event_name == 'pull_request' &&
+            github.event.pull_request.merged == true &&
+            !contains(github.event.pull_request.labels.*.name, 'skip-publish')) ||
             (github.event_name == 'workflow_dispatch')
         runs-on: ubuntu-latest
         permissions:
@@ -140,7 +162,53 @@ jobs:
             - name: Install
               run: npm ci
 
+            - name: Check Publishing Status
+              id: publish-check
+              env:
+                  EVENT_NAME: ${{ github.event_name }}
+                  HAS_SKIP_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'skip-publish') }}
+              run: |
+                  # Validate event name first
+                  if [[ "$EVENT_NAME" != "pull_request" && "$EVENT_NAME" != "workflow_dispatch" ]]; then
+                    echo "Invalid event type"
+                    exit 1
+                  fi
+
+                  # Use environment variable for safer comparison
+                  if [[ "$EVENT_NAME" == "pull_request" && "$HAS_SKIP_LABEL" == "true" ]]; then
+                    echo "Publishing skipped due to skip-publish label"
+                    echo "should_publish=false" >> $GITHUB_OUTPUT
+                  else
+                    echo "should_publish=true" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Create Comment on Skip
+              if: github.event_name == 'pull_request' && steps.publish-check.outputs.should_publish == 'false'
+              uses: actions/github-script@v7
+              with:
+                  github-token: ${{ secrets.ACTIONS_KEY }}
+                  script: |
+                      github.rest.issues.createComment({
+                          issue_number: context.issue.number,
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          body: '⏭️ NPM publishing was skipped due to the `skip-publish` label.'
+                      })
+
+            - name: Import GPG key
+              if: steps.publish-check.outputs.should_publish == 'true'
+              id: import_gpg
+              uses: crazy-max/ghaction-import-gpg@v6
+              with:
+                  gpg_private_key: ${{ secrets.ACTIONS_GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.ACTIONS_GPG_PASSPHRASE }}
+                  git_user_signingkey: true
+                  git_commit_gpgsign: true
+                  git_tag_gpgsign: true
+                  git_config_global: true
+
             - name: Determine version bump type
+              if: steps.publish-check.outputs.should_publish == 'true'
               id: version-type
               env:
                   HAS_MAJOR: ${{ contains(github.event.pull_request.labels.*.name, 'major') }}
@@ -169,18 +237,8 @@ jobs:
 
                   echo "bump=$BUMP_TYPE" >> $GITHUB_OUTPUT
 
-            - name: Import GPG key
-              id: import_gpg
-              uses: crazy-max/ghaction-import-gpg@v6
-              with:
-                  gpg_private_key: ${{ secrets.ACTIONS_GPG_PRIVATE_KEY }}
-                  passphrase: ${{ secrets.ACTIONS_GPG_PASSPHRASE }}
-                  git_user_signingkey: true
-                  git_commit_gpgsign: true
-                  git_tag_gpgsign: true
-                  git_config_global: true
-
             - name: Bump version
+              if: steps.publish-check.outputs.should_publish == 'true'
               id: version
               env:
                   PR_TITLE: ${{ github.event.pull_request.title }}
@@ -238,6 +296,7 @@ jobs:
                   git push --tags
 
             - name: Create Release
+              if: steps.publish-check.outputs.should_publish == 'true'
               id: create_release
               uses: softprops/action-gh-release@v1
               with:
@@ -254,6 +313,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Publish
+              if: steps.publish-check.outputs.should_publish == 'true'
               run: |
                   # Ensure we're publishing to the correct scope
                   rm -f ./.npmrc
