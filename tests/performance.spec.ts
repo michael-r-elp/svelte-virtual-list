@@ -8,8 +8,6 @@ test.describe('Scrolling Performance', () => {
     })
 
     test('should maintain performance while scrolling', async ({ page }) => {
-        const viewport = page.locator('[data-testid="performance-list-viewport"]')
-
         const metrics = await page.evaluate(async () => {
             const viewport = document.querySelector('[data-testid="performance-list-viewport"]')
             const measurements: number[] = []
@@ -73,6 +71,7 @@ test.describe('Scrolling Performance', () => {
 
     test('should handle continuous scrolling without memory leaks', async ({ page }) => {
         const initialMemory = await page.evaluate(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             () => (performance as any).memory?.usedJSHeapSize || 0
         )
 
@@ -88,6 +87,7 @@ test.describe('Scrolling Performance', () => {
         })
 
         const finalMemory = await page.evaluate(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             () => (performance as any).memory?.usedJSHeapSize || 0
         )
 
