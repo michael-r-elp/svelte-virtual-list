@@ -15,10 +15,11 @@ on:
     workflow_dispatch:
         inputs:
             version_bump:
-                description: 'Version bump type (major/minor/patch)'
+                description: 'Version bump type (major/minor/patch) or skip'
                 required: true
                 type: choice
                 options:
+                    - skip
                     - patch
                     - minor
                     - major
@@ -219,7 +220,7 @@ jobs:
                   validate_bump_type() {
                     local bump="$1"
                     case "$bump" in
-                      "major"|"minor"|"patch") echo "$bump" ;;
+                      "major"|"minor"|"patch"|"skip") echo "$bump" ;;
                       *) echo "patch" ;;
                     esac
                   }
@@ -227,6 +228,11 @@ jobs:
                   # Determine and validate bump type
                   if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
                     BUMP_TYPE=$(validate_bump_type "$INPUT_VERSION")
+                    if [ "$BUMP_TYPE" = "skip" ]; then
+                      echo "Publishing skipped via manual selection"
+                      echo "should_publish=false" >> $GITHUB_OUTPUT
+                      exit 0
+                    fi
                   elif [ "$HAS_MAJOR" = "true" ]; then
                     BUMP_TYPE="major"
                   elif [ "$HAS_MINOR" = "true" ]; then
