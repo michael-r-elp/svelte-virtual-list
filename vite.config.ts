@@ -15,7 +15,8 @@ export default defineConfig({
         environment: 'jsdom',
         setupFiles: ['vitest.setup.ts'],
         coverage: { reporter: 'lcov' },
-        exclude: [...configDefaults.exclude, 'docs/**/*']
+        exclude: [...configDefaults.exclude, 'docs/**/*'],
+        reporters: [['junit', { outputFile: './junit-vitest.xml' }]]
     },
     build: {
         sourcemap: true

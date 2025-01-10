@@ -55,6 +55,14 @@ jobs:
             - name: Test
               run: npm test --coverage
 
+            - name: Upload Vitest Results
+              if: always()
+              uses: trunk-io/analytics-uploader@main
+              with:
+                  junit-paths: 'junit-vitest.xml'
+                  org-slug: ${{ secrets.TRUNK_ORG_SLUG }}
+                  token: ${{ secrets.TRUNK_TOKEN }}
+
             - name: Upload coverage to Coveralls
               uses: coverallsapp/github-action@v2
               with:
@@ -80,15 +88,28 @@ jobs:
               with:
                   persist-credentials: false
                   token: ${{ secrets.ACTIONS_KEY }}
+
             - uses: actions/setup-node@v4
               with:
                   node-version: 22
+
             - name: Install dependencies
               run: npm ci
+
             - name: Install Playwright Browsers
               run: npx playwright install --with-deps
+
             - name: Run Playwright tests
               run: npm run test:e2e
+
+            - name: Upload Playwright Results
+              if: always()
+              uses: trunk-io/analytics-uploader@main
+              with:
+                  junit-paths: 'junit-playwright.xml'
+                  org-slug: ${{ secrets.TRUNK_ORG_SLUG }}
+                  token: ${{ secrets.TRUNK_TOKEN }}
+
             - uses: actions/upload-artifact@v4
               if: always()
               with:
