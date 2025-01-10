@@ -133,11 +133,6 @@ jobs:
     # 5. Publishing job (main deployment logic)
     publish-github-packages:
         needs: [build, playwright-tests, coverage-report]
-        if: |
-            (github.event_name == 'pull_request' &&
-            github.event.pull_request.merged == true &&
-            !contains(github.event.pull_request.labels.*.name, 'skip-publish')) ||
-            (github.event_name == 'workflow_dispatch')
         runs-on: ubuntu-latest
         permissions:
             contents: write
@@ -167,6 +162,7 @@ jobs:
               id: publish-check
               env:
                   EVENT_NAME: ${{ github.event_name }}
+                  IS_MERGED: ${{ github.event.pull_request.merged }}
                   HAS_SKIP_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'skip-publish') }}
                   INPUT_VERSION: ${{ github.event.inputs.version_bump }}
               run: |
@@ -176,10 +172,17 @@ jobs:
                     exit 1
                   fi
 
-                  # Check skip conditions
-                  if [[ "$EVENT_NAME" == "pull_request" && "$HAS_SKIP_LABEL" == "true" ]]; then
-                    echo "Publishing skipped due to skip-publish label"
-                    echo "should_publish=false" >> $GITHUB_OUTPUT
+                  # Check publishing conditions
+                  if [[ "$EVENT_NAME" == "pull_request" ]]; then
+                    if [[ "$IS_MERGED" != "true" ]]; then
+                      echo "PR not merged, skipping publish"
+                      echo "should_publish=false" >> $GITHUB_OUTPUT
+                    elif [[ "$HAS_SKIP_LABEL" == "true" ]]; then
+                      echo "Publishing skipped due to skip-publish label"
+                      echo "should_publish=false" >> $GITHUB_OUTPUT
+                    else
+                      echo "should_publish=true" >> $GITHUB_OUTPUT
+                    fi
                   elif [[ "$EVENT_NAME" == "workflow_dispatch" && "$INPUT_VERSION" == "skip" ]]; then
                     echo "Publishing skipped via manual selection"
                     echo "should_publish=false" >> $GITHUB_OUTPUT
