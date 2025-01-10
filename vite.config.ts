@@ -16,7 +16,12 @@ export default defineConfig({
         setupFiles: ['vitest.setup.ts'],
         coverage: { reporter: 'lcov' },
         exclude: [...configDefaults.exclude, '**/docs/**/*'],
-        reporters: ['verbose', ['junit', { outputFile: './junit-vitest.xml' }]]
+        reporters: ['verbose', ['junit', { outputFile: './junit-vitest.xml' }]],
+        // Add these configurations to handle the ESM/CommonJS interop
+        deps: {
+            interopDefault: true,
+            inline: [/@asamuzakjp\/css-color/]
+        }
     },
     build: {
         sourcemap: true
