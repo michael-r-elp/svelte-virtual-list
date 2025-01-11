@@ -2,47 +2,70 @@
     "name": "@humanspeak/svelte-virtual-list",
     "version": "0.1.6",
     "description": "A lightweight, high-performance virtual list component for Svelte 5 that renders large datasets with minimal memory usage. Features include dynamic height support, smooth scrolling, TypeScript support, and efficient DOM recycling. Ideal for infinite scrolling lists, data tables, chat interfaces, and any application requiring the rendering of thousands of items without compromising performance. Zero dependencies and fully customizable.",
+    "keywords": [
+        "svelte",
+        "virtual-list",
+        "virtual-scroll",
+        "infinite-scroll",
+        "performance",
+        "ui-component",
+        "svelte5",
+        "dom-recycling",
+        "large-lists",
+        "scroll-optimization"
+    ],
+    "homepage": "https://virtuallist.svelte.page",
+    "bugs": {
+        "url": "https://github.com/humanspeak/svelte-virtual-list/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/humanspeak/svelte-virtual-list.git"
+    },
+    "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/humanspeak"
+    },
+    "license": "MIT",
+    "author": "Humanspeak, Inc.",
+    "sideEffects": [
+        "**/*.css"
+    ],
     "type": "module",
-    "svelte": "./dist/index.js",
-    "types": "./dist/index.d.ts",
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
             "svelte": "./dist/index.js"
         }
     },
+    "svelte": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "files": [
         "dist",
         "!dist/**/*.test.*",
         "!dist/**/*.spec.*"
     ],
-    "sideEffects": [
-        "**/*.css"
-    ],
     "scripts": {
-        "dev": "vite dev",
         "build": "vite build && npm run package",
-        "preview": "vite preview",
-        "package": "svelte-kit sync && svelte-package && publint",
-        "prepublishOnly": "npm run package",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-        "test": "vitest run --coverage",
-        "test:only": "vitest run",
-        "test:watch": "vitest",
+        "dev": "vite dev",
+        "format": "prettier --write .",
         "lint": "prettier --check . && eslint .",
         "lint:fix": "npm run format && eslint . --fix",
-        "format": "prettier --write .",
+        "package": "svelte-kit sync && svelte-package && publint",
+        "prepublishOnly": "npm run package",
+        "preview": "vite preview",
+        "test": "vitest run --coverage",
         "test:e2e": "playwright test",
-        "test:e2e:ui": "playwright test --ui",
         "test:e2e:debug": "playwright test --debug",
-        "test:e2e:report": "playwright show-report"
+        "test:e2e:report": "playwright show-report",
+        "test:e2e:ui": "playwright test --ui",
+        "test:only": "vitest run",
+        "test:watch": "vitest"
     },
     "dependencies": {
         "esm-env": "^1.2.2"
-    },
-    "peerDependencies": {
-        "svelte": "^5.0.0"
     },
     "devDependencies": {
         "@eslint/js": "^9.17.0",
@@ -73,41 +96,11 @@
         "vite": "^6.0.7",
         "vitest": "^3.0.0-beta.4"
     },
-    "keywords": [
-        "svelte",
-        "virtual-list",
-        "virtual-scroll",
-        "infinite-scroll",
-        "performance",
-        "ui-component",
-        "svelte5",
-        "dom-recycling",
-        "large-lists",
-        "scroll-optimization"
-    ],
-    "tags": [
-        "svelte",
-        "virtual-list",
-        "virtual-scroll",
-        "virtual-scroller",
-        "infinite-scroll",
-        "performance",
-        "ui-component",
-        "svelte5"
-    ],
-    "author": "Humanspeak, Inc.",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/humanspeak/svelte-virtual-list.git"
+    "peerDependencies": {
+        "svelte": "^5.0.0"
     },
-    "homepage": "https://virtuallist.svelte.page",
-    "bugs": {
-        "url": "https://github.com/humanspeak/svelte-virtual-list/issues"
-    },
-    "funding": {
-        "type": "github",
-        "url": "https://github.com/sponsors/humanspeak"
+    "volta": {
+        "node": "22.12.0"
     },
     "publishConfig": {
         "access": "public"
@@ -121,7 +114,14 @@
             "@asamuzakjp/css-color": "1.0.0"
         }
     },
-    "volta": {
-        "node": "22.12.0"
-    }
+    "tags": [
+        "svelte",
+        "virtual-list",
+        "virtual-scroll",
+        "virtual-scroller",
+        "infinite-scroll",
+        "performance",
+        "ui-component",
+        "svelte5"
+    ]
 }
