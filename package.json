@@ -109,10 +109,6 @@
     "overrides": {
         "@sveltejs/kit": {
             "cookie": "^0.7.0"
-        },
-        "jsdom": {
-            "cssstyle": "2.3.0",
-            "@asamuzakjp/css-color": "1.0.0"
         }
     },
     "tags": [
