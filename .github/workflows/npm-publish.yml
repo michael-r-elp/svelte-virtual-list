@@ -146,6 +146,7 @@ jobs:
             packages: write
             issues: write
             pull-requests: write
+            id-token: write
 
         steps:
             - name: Checkout
@@ -340,7 +341,7 @@ jobs:
                   # Ensure we're publishing to the correct scope
                   rm -f ./.npmrc
                   npm config set @humanspeak:registry https://registry.npmjs.org/
-                  npm publish --access public
+                  npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_GITHUB_TOKEN }}
 
