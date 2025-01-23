@@ -135,6 +135,7 @@
     } from './utils/virtualList.js'
     import { rafSchedule } from './utils/raf.js'
     import { shouldShowDebugInfo, createDebugInfo } from './utils/virtualListDebug.js'
+    import { calculateAverageHeightDebounced } from './utils/heightCalculation.js'
 
     /**
      * Core configuration props with default values
@@ -193,76 +194,23 @@
     let prevVisibleRange = $state<{ start: number; end: number } | null>(null)
     let prevHeight = $state<number>(0)
 
-    /**
-     * Calculates and updates the average height of visible items with debouncing.
-     *
-     * This function optimizes performance by:
-     * - Debouncing calculations to prevent excessive DOM reads
-     * - Caching item heights to minimize recalculations
-     * - Only updating when significant changes are detected
-     *
-     * Implementation details:
-     * - Uses a 200ms debounce timeout
-     * - Tracks calculation state to prevent concurrent updates
-     * - Caches heights in heightCache for reuse
-     * - Only updates if height difference > 1px
-     *
-     * State interactions:
-     * - Updates calculatedItemHeight
-     * - Updates lastMeasuredIndex
-     * - Modifies heightCache
-     * - Uses/sets isCalculatingHeight flag
-     *
-     * @example
-     * ```typescript
-     * // Automatically called when items are rendered
-     * $effect(() => {
-     *     if (BROWSER && itemElements.length > 0 && !isCalculatingHeight) {
-     *         calculateAverageHeightDebounced()
-     *     }
-     * })
-     * ```
-     *
-     * @returns {void}
-     */
-    const calculateAverageHeightDebounced = () => {
-        if (!BROWSER || isCalculatingHeight || heightUpdateTimeout) return
-        isCalculatingHeight = true
-
-        if (heightUpdateTimeout) {
-            clearTimeout(heightUpdateTimeout)
-        }
-
-        heightUpdateTimeout = setTimeout(() => {
-            const visibleRange = visibleItems()
-            const currentIndex = visibleRange.start
-
-            if (currentIndex !== lastMeasuredIndex) {
-                const { newHeight, newLastMeasuredIndex, updatedHeightCache } =
-                    calculateAverageHeight(
-                        itemElements,
-                        visibleRange,
-                        heightCache,
-                        lastMeasuredIndex,
-                        calculatedItemHeight
-                    )
-
-                if (Math.abs(newHeight - calculatedItemHeight) > 1) {
-                    calculatedItemHeight = newHeight
-                    lastMeasuredIndex = newLastMeasuredIndex
-                    heightCache = updatedHeightCache
-                }
-            }
-
-            isCalculatingHeight = false
-            heightUpdateTimeout = null
-        }, 200)
-    }
-
     // Trigger height calculation when items are rendered
     $effect(() => {
         if (BROWSER && itemElements.length > 0 && !isCalculatingHeight) {
-            calculateAverageHeightDebounced()
+            heightUpdateTimeout = calculateAverageHeightDebounced(
+                isCalculatingHeight,
+                heightUpdateTimeout,
+                visibleItems,
+                itemElements,
+                heightCache,
+                lastMeasuredIndex,
+                calculatedItemHeight,
+                (result) => {
+                    calculatedItemHeight = result.newHeight
+                    lastMeasuredIndex = result.newLastMeasuredIndex
+                    heightCache = result.updatedHeightCache
+                }
+            )
         }
     })
 
