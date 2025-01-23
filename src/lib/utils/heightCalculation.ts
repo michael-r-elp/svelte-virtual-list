@@ -98,7 +98,6 @@ export const calculateAverageHeightDebounced = (
             itemElements,
             visibleRange,
             heightCache,
-            lastMeasuredIndex,
             calculatedItemHeight
         )
 

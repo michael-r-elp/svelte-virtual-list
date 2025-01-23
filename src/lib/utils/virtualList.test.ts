@@ -140,10 +140,10 @@ describe('updateHeightAndScroll', () => {
 
 describe('calculateAverageHeight', () => {
     it('should return current height when no elements are provided', () => {
-        const result = calculateAverageHeight([], { start: 0 }, {}, -1, 40)
+        const result = calculateAverageHeight([], { start: 0 }, {}, 40)
 
         expect(result.newHeight).toBe(40)
-        expect(result.newLastMeasuredIndex).toBe(-1)
+        expect(result.newLastMeasuredIndex).toBe(0)
         expect(result.updatedHeightCache).toEqual({})
     })
 
@@ -153,7 +153,7 @@ describe('calculateAverageHeight', () => {
             { getBoundingClientRect: () => ({ height: 50 }) }
         ] as HTMLElement[]
 
-        const result = calculateAverageHeight(mockElements, { start: 0 }, {}, -1, 40)
+        const result = calculateAverageHeight(mockElements, { start: 0 }, {}, 40)
 
         expect(result.newHeight).toBe(40) // (30 + 50) / 2
         expect(result.newLastMeasuredIndex).toBe(0)
@@ -168,6 +168,110 @@ describe('calculateAverageHeight', () => {
         const result = calculateAverageHeight(mockElements, { start: 0 }, existingCache, 0, 40)
 
         expect(result.updatedHeightCache).toEqual(existingCache)
+    })
+
+    it('should handle invalid height measurements', () => {
+        const mockElements = [
+            { getBoundingClientRect: () => ({ height: NaN }) },
+            { getBoundingClientRect: () => ({ height: -10 }) },
+            { getBoundingClientRect: () => ({ height: Infinity }) }
+        ] as HTMLElement[]
+
+        const result = calculateAverageHeight(mockElements, { start: 0 }, {}, 40)
+
+        expect(result.newHeight).toBe(40) // Should fallback to currentItemHeight
+        expect(result.newLastMeasuredIndex).toBe(0)
+        expect(Object.keys(result.updatedHeightCache).length).toBe(0)
+    })
+
+    it('should calculate average excluding invalid heights', () => {
+        const mockElements = [
+            { getBoundingClientRect: () => ({ height: 30 }) },
+            { getBoundingClientRect: () => ({ height: NaN }) },
+            { getBoundingClientRect: () => ({ height: 50 }) }
+        ] as HTMLElement[]
+
+        const result = calculateAverageHeight(mockElements, { start: 0 }, {}, 40)
+
+        expect(result.newHeight).toBe(40) // (30 + 50) / 2
+        expect(result.newLastMeasuredIndex).toBe(0)
+        expect(Object.keys(result.updatedHeightCache).length).toBe(2)
+    })
+
+    it('should handle all invalid measurements', () => {
+        const mockElements = [
+            { getBoundingClientRect: () => ({ height: NaN }) },
+            { getBoundingClientRect: () => ({ height: Infinity }) }
+        ] as HTMLElement[]
+
+        const result = calculateAverageHeight(mockElements, { start: 0 }, {}, 40)
+
+        expect(result.newHeight).toBe(40) // Falls back to currentItemHeight
+        expect(result.newLastMeasuredIndex).toBe(0)
+        expect(Object.keys(result.updatedHeightCache).length).toBe(0)
+    })
+
+    it('should handle mixed cached and new measurements', () => {
+        const mockElements = [
+            { getBoundingClientRect: () => ({ height: 30 }) },
+            { getBoundingClientRect: () => ({ height: 50 }) }
+        ] as HTMLElement[]
+
+        const existingCache = { 1: 40 } // Cache for second element
+
+        const result = calculateAverageHeight(mockElements, { start: 0 }, existingCache, -1, 40)
+
+        expect(result.newHeight).toBe(35) // (30 + 40) / 2
+        expect(result.newLastMeasuredIndex).toBe(0)
+        expect(result.updatedHeightCache).toEqual({ 0: 30, 1: 40 })
+    })
+
+    it('should handle empty height cache gracefully', () => {
+        const mockElements = [] as HTMLElement[]
+        const result = calculateAverageHeight(mockElements, { start: 0 }, {}, 40)
+
+        expect(result.newHeight).toBe(40)
+        expect(result.newLastMeasuredIndex).toBe(0)
+        expect(Object.keys(result.updatedHeightCache).length).toBe(0)
+    })
+
+    it('should fallback to currentItemHeight when no valid heights exist', () => {
+        const mockElements = [
+            { getBoundingClientRect: () => ({ height: NaN }) },
+            { getBoundingClientRect: () => ({ height: -1 }) }
+        ] as HTMLElement[]
+
+        const result = calculateAverageHeight(mockElements, { start: 0 }, {}, 45)
+
+        expect(result.newHeight).toBe(45) // Should use currentItemHeight
+        expect(result.newLastMeasuredIndex).toBe(0)
+        expect(Object.keys(result.updatedHeightCache).length).toBe(0)
+    })
+
+    it('should use currentItemHeight when no heights are collected', () => {
+        const mockElements = [null] as unknown as HTMLElement[]
+
+        const result = calculateAverageHeight(mockElements, { start: 0 }, {}, 45)
+
+        expect(result.newHeight).toBe(45)
+        expect(result.newLastMeasuredIndex).toBe(0)
+        expect(Object.keys(result.updatedHeightCache).length).toBe(0)
+    })
+
+    it('should use currentItemHeight when getBoundingClientRect throws', () => {
+        const mockElements = [
+            {
+                getBoundingClientRect: () => {
+                    throw new Error('getBoundingClientRect error')
+                }
+            } as unknown as HTMLElement
+        ] as HTMLElement[]
+
+        const result = calculateAverageHeight(mockElements, { start: 0 }, {}, 45)
+
+        expect(result.newHeight).toBe(45) // Should use currentItemHeight
+        expect(result.newLastMeasuredIndex).toBe(0)
+        expect(Object.keys(result.updatedHeightCache).length).toBe(0)
     })
 })
 

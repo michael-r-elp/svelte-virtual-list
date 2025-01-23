@@ -144,7 +144,6 @@ export const updateHeightAndScroll = (
  * @param {HTMLElement[]} itemElements - Array of currently rendered item elements
  * @param {{ start: number }} visibleRange - Object containing the start index of visible items
  * @param {Record<number, number>} heightCache - Cache of previously measured item heights
- * @param {number} lastMeasuredIndex - Index of the last measured item
  * @param {number} currentItemHeight - Current average item height being used
  *
  * @returns {{
@@ -158,7 +157,6 @@ export const updateHeightAndScroll = (
  *   itemElements,
  *   { start: 0 },
  *   {},
- *   -1,
  *   40
  * )
  */
@@ -166,7 +164,6 @@ export const calculateAverageHeight = (
     itemElements: HTMLElement[],
     visibleRange: { start: number },
     heightCache: Record<number, number>,
-    lastMeasuredIndex: number,
     currentItemHeight: number
 ): {
     newHeight: number
@@ -177,7 +174,7 @@ export const calculateAverageHeight = (
     if (validElements.length === 0) {
         return {
             newHeight: currentItemHeight,
-            newLastMeasuredIndex: lastMeasuredIndex,
+            newLastMeasuredIndex: visibleRange.start,
             updatedHeightCache: heightCache
         }
     }
@@ -188,16 +185,25 @@ export const calculateAverageHeight = (
     validElements.forEach((el, i) => {
         const itemIndex = visibleRange.start + i
         if (!newHeightCache[itemIndex]) {
-            newHeightCache[itemIndex] = el.getBoundingClientRect().height
+            try {
+                const height = el.getBoundingClientRect().height
+                if (Number.isFinite(height) && height > 0) {
+                    newHeightCache[itemIndex] = height
+                }
+            } catch {
+                // Skip invalid measurements
+            }
         }
     })
 
-    // Calculate average from cached heights
-    const heights = Object.values(newHeightCache)
-    const averageHeight = heights.reduce((sum, h) => sum + h, 0) / heights.length
+    // Calculate average from valid cached heights
+    const validHeights = Object.values(newHeightCache).filter((h) => Number.isFinite(h) && h > 0)
 
     return {
-        newHeight: averageHeight > 0 && !isNaN(averageHeight) ? averageHeight : currentItemHeight,
+        newHeight:
+            validHeights.length > 0
+                ? validHeights.reduce((sum, h) => sum + h, 0) / validHeights.length
+                : currentItemHeight,
         newLastMeasuredIndex: visibleRange.start,
         updatedHeightCache: newHeightCache
     }
