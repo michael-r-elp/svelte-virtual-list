@@ -37,10 +37,10 @@ on:
 jobs:
     # 3. Testing jobs (grouped together)
     build:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         strategy:
             matrix:
-                node-version: [20, 22]
+                node-version: [20, 22, 23]
         permissions:
             contents: read
             packages: write
@@ -90,7 +90,7 @@ jobs:
 
     playwright-tests:
         timeout-minutes: 60
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@v4
               with:
@@ -128,7 +128,7 @@ jobs:
     # 4. Coverage reporting (depends on tests)
     coverage-report:
         needs: [build, playwright-tests]
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         if: ${{ always() }}
         steps:
             - name: Coveralls Finished
@@ -140,7 +140,7 @@ jobs:
     # 5. Publishing job (main deployment logic)
     publish-github-packages:
         needs: [build, playwright-tests, coverage-report]
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         permissions:
             contents: write
             packages: write
