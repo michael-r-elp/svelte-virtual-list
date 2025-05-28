@@ -1,11 +1,12 @@
 import adapter from '@sveltejs/adapter-cloudflare'
+import { mdsvex } from 'mdsvex';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
     // Consult https://svelte.dev/docs/kit/integrations
     // for more information about preprocessors
-    preprocess: [vitePreprocess()],
+    preprocess: [vitePreprocess(), mdsvex()],
 
     kit: {
         // adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
