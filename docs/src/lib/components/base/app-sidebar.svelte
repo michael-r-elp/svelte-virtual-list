@@ -13,7 +13,7 @@
                     {#snippet child({ props }: { props: Record<string, unknown> })}
                         <a href="##" {...props}>
                             <div class="flex w-full gap-2">
-                                {#if $mode === 'dark'}
+                                {#if mode.current === 'dark'}
                                     <img
                                         src="./humanspeak-dark.svg"
                                         alt="humanspeak logo"
@@ -53,13 +53,18 @@
                             <Sidebar.MenuSub>
                                 <Sidebar.MenuSubItem>
                                     <Sidebar.MenuButton>
-                                        <a href={'https://markdown.svelte.page'}>
+                                        <a href="https://markdown.svelte.page">
                                             <span>/markdown</span>
                                         </a>
                                     </Sidebar.MenuButton>
                                     <Sidebar.MenuButton>
-                                        <a href={'https://table.svelte.page'}>
+                                        <a href="https://table.svelte.page">
                                             <span>/table</span>
+                                        </a>
+                                    </Sidebar.MenuButton>
+                                    <Sidebar.MenuButton>
+                                        <a href="https://diff.svelte.page">
+                                            <span>/diff</span>
                                         </a>
                                     </Sidebar.MenuButton>
                                 </Sidebar.MenuSubItem>
@@ -93,21 +98,21 @@
                             <Sidebar.MenuSub>
                                 <Sidebar.MenuSubItem>
                                     <Sidebar.MenuButton>
-                                        <a href={'https://humanspeak.com'} target="_blank">
+                                        <a href="https://humanspeak.com" target="_blank">
                                             <span>Humanspeak</span>
                                         </a>
                                     </Sidebar.MenuButton>
                                 </Sidebar.MenuSubItem>
                                 <Sidebar.MenuSubItem>
                                     <Sidebar.MenuButton>
-                                        <a href={'https://beye.ai'} target="_blank">
+                                        <a href="https://beye.ai" target="_blank">
                                             <span>B/eye</span>
                                         </a>
                                     </Sidebar.MenuButton>
                                 </Sidebar.MenuSubItem>
                                 <Sidebar.MenuSubItem>
                                     <Sidebar.MenuButton>
-                                        <a href={'https://shadcn-svelte.com'} target="_blank">
+                                        <a href="https://shadcn-svelte.com" target="_blank">
                                             <span>Shadcn</span>
                                         </a>
                                     </Sidebar.MenuButton>

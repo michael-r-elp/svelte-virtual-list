@@ -14,7 +14,7 @@ on:
 
 jobs:
     deploy:
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-latest
         name: Deploy
         steps:
             - name: Checkout
