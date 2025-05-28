@@ -24,7 +24,7 @@
 <MainContainer>
     <div class="flex h-full min-h-0 w-full">
         <div class="flex h-full min-h-0 w-full justify-center p-4">
-            <div class="grid h-full min-h-0 w-full grid-cols-[25%_auto] gap-8">
+            <div class="grid h-full min-h-0 w-full grid-cols-[50%_auto] gap-8">
                 <div class="h-full min-h-0">
                     <Card.Root class="flex h-full flex-col">
                         <Card.Header>
