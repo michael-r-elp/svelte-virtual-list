@@ -22,10 +22,10 @@
 </script>
 
 <MainContainer>
-    <div class="h-full w-full">
-        <div class="flex h-full justify-center p-8">
-            <div class="grid h-full w-full grid-cols-2 gap-8">
-                <div class="h-full">
+    <div class="flex h-full min-h-0 w-full">
+        <div class="flex h-full min-h-0 w-full justify-center p-4">
+            <div class="grid h-full min-h-0 w-full grid-cols-[25%_auto] gap-8">
+                <div class="h-full min-h-0">
                     <Card.Root class="flex h-full flex-col">
                         <Card.Header>
                             <Card.Title>Top to bottom</Card.Title>
@@ -33,7 +33,7 @@
                                 Check the console for debug information (topToBottomDebug)
                             </Card.Description>
                         </Card.Header>
-                        <Card.Content class="flex flex-1 flex-col">
+                        <Card.Content class="flex min-h-0 flex-1 flex-col">
                             <SvelteVirtualList {items} debug debugFunction={topToBottomDebug}>
                                 {#snippet renderItem(item: Item, _index: number)}
                                     <div>
@@ -52,7 +52,7 @@
                                 Check the console for debug information (bottomToTopDebug)
                             </Card.Description>
                         </Card.Header>
-                        <Card.Content class="flex-1">
+                        <Card.Content class="flex min-h-0 flex-1 flex-col">
                             <SvelteVirtualList
                                 {items}
                                 mode="bottomToTop"
