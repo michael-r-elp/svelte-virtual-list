@@ -122,7 +122,7 @@
      * - Progressive size adjustment system
      */
 
-    import { onMount } from 'svelte'
+    import { onMount, tick } from 'svelte'
     import { BROWSER } from 'esm-env'
     import type { SvelteVirtualListProps } from './types.js'
     import {
@@ -253,7 +253,7 @@
             const targetScrollTop = Math.max(0, totalHeight - height)
 
             // Add delay to ensure layout is complete
-            setTimeout(() => {
+            tick().then(() => {
                 if (viewportElement) {
                     // Start at the bottom for bottom-to-top mode
                     viewportElement.scrollTop = targetScrollTop
@@ -354,12 +354,12 @@
      */
     const updateHeightAndScroll = (immediate = false) => {
         if (!initialized && mode === 'bottomToTop') {
-            setTimeout(() => {
+            tick().then(() => {
                 if (containerElement) {
                     const initialHeight = containerElement.getBoundingClientRect().height
                     height = initialHeight
 
-                    setTimeout(() => {
+                    tick().then(() => {
                         if (containerElement && viewportElement) {
                             const finalHeight = containerElement.getBoundingClientRect().height
                             height = finalHeight
