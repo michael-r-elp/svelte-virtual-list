@@ -122,20 +122,19 @@
      * - Progressive size adjustment system
      */
 
-    import { onMount, tick } from 'svelte'
-    import { BROWSER } from 'esm-env'
-    import type { SvelteVirtualListProps } from './types.js'
+    import type { SvelteVirtualListProps } from '$lib/types.js'
+    import { calculateAverageHeightDebounced } from '$lib/utils/heightCalculation.js'
+    import { rafSchedule } from '$lib/utils/raf.js'
     import {
         calculateScrollPosition,
-        calculateVisibleRange,
         calculateTransformY,
-        updateHeightAndScroll as utilsUpdateHeightAndScroll,
-        calculateAverageHeight,
-        processChunked
-    } from './utils/virtualList.js'
-    import { rafSchedule } from './utils/raf.js'
-    import { shouldShowDebugInfo, createDebugInfo } from './utils/virtualListDebug.js'
-    import { calculateAverageHeightDebounced } from './utils/heightCalculation.js'
+        calculateVisibleRange,
+        processChunked,
+        updateHeightAndScroll as utilsUpdateHeightAndScroll
+    } from '$lib/utils/virtualList.js'
+    import { createDebugInfo, shouldShowDebugInfo } from '$lib/utils/virtualListDebug.js'
+    import { BROWSER } from 'esm-env'
+    import { onMount, tick } from 'svelte'
 
     /**
      * Core configuration props with default values
@@ -268,7 +267,7 @@
                         initialized = true
                     })
                 }
-            }, 50)
+            })
         }
     })
 
@@ -386,9 +385,9 @@
                                 }
                             })
                         }
-                    }, 100)
+                    })
                 }
-            }, 100)
+            })
             return
         }
 
