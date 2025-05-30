@@ -1,23 +1,49 @@
-let scheduled: boolean = false
-let callback: (() => void) | null = null
-
 /**
- * Schedules a function to be executed on the next animation frame.
- * If a function is already scheduled, the new function will replace it.
- * This helps prevent multiple RAF calls and ensures smooth animations.
+ * Creates a requestAnimationFrame (RAF) scheduler for debouncing animation frame callbacks.
  *
- * @param fn - The function to be executed on the next animation frame
+ * This factory returns a function that schedules a callback to run on the next animation frame.
+ * If multiple calls are made before the frame executes, only the last callback is executed.
+ *
+ * This is ideal for scenarios where you want to batch or debounce UI updates, such as scroll or resize handlers,
+ * without risking global state leaks or cross-component interference.
+ *
+ * ### Why use this?
+ * - Prevents redundant RAF calls and excessive re-renders.
+ * - Ensures only the latest callback is executed per frame.
+ * - Each scheduler instance is independent—no global state is shared.
+ *
+ * @example
+ * // Svelte usage example:
+ * <script lang="ts">
+ *   import { createRafScheduler } from '$lib/utils/raf.js';
+ *   const rafSchedule = createRafScheduler();
+ *   function onScroll() {
+ *     rafSchedule(() => {
+ *       // Perform expensive DOM measurement or update
+ *     });
+ *   }
+ * </script>
+ * <div on:scroll={onScroll}> ... </div>
+ *
+ * @returns {(fn: () => void) => void} A scheduler function. Call with a callback to schedule it for the next animation frame.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
  */
-export const rafSchedule = (fn: () => void): void => {
-    callback = fn
-    if (!scheduled) {
-        scheduled = true
-        requestAnimationFrame((): void => {
-            scheduled = false
-            if (callback) {
-                callback()
-                callback = null
-            }
-        })
+export function createRafScheduler() {
+    let scheduled = false
+    let callback: (() => void) | null = null
+
+    return (fn: () => void): void => {
+        callback = fn
+        if (!scheduled) {
+            scheduled = true
+            requestAnimationFrame(() => {
+                scheduled = false
+                if (callback) {
+                    callback()
+                    callback = null
+                }
+            })
+        }
     }
 }

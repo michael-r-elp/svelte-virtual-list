@@ -124,7 +124,7 @@
 
     import type { SvelteVirtualListProps } from '$lib/types.js'
     import { calculateAverageHeightDebounced } from '$lib/utils/heightCalculation.js'
-    import { rafSchedule } from '$lib/utils/raf.js'
+    import { createRafScheduler } from '$lib/utils/raf.js'
     import {
         calculateScrollPosition,
         calculateTransformY,
@@ -138,6 +138,7 @@
     import { onMount, tick } from 'svelte'
 
     export const scrollToIndex = _scrollToIndex
+    const rafSchedule = createRafScheduler()
 
     /**
      * Core configuration props with default values

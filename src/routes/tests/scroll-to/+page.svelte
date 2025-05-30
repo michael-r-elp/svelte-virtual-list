@@ -21,7 +21,7 @@
     class="test-container"
     style="height: 500px; border: 1px solid pink;padding: 10px; border-radius: 10px;"
 >
-    <SvelteVirtualList {items} testId="basic-list" bind:this={virtualList}>
+    <SvelteVirtualList {items} testId="basic-list" bind:this={virtualList} debug>
         {#snippet renderItem(item: Item)}
             <div class="test-item" data-testid="list-item-{item.id}">
                 {item.text}
