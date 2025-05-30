@@ -257,3 +257,43 @@ export const processChunked = async (
 
     await processChunk(0)
 }
+
+/**
+ * Scrolls the virtual list to the item at the given index.
+ *
+ * @function scrollToIndex
+ * @param index The index of the item to scroll to.
+ * @param smoothScroll (default: true) Whether to use smooth scrolling.
+ * @param shouldThrowOnBounds (default: true) Whether to throw an error if the index is out of bounds.
+ *
+ * @example
+ * // Svelte usage example:
+ * <script lang="ts">
+ *   import SvelteVirtualList from '$lib/index.js';
+ *   let virtualList;
+ *   const items = Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `Item ${i}` }));
+ * </script>
+ *
+ * <button on:click={() => virtualList.scrollToIndex(5000)}>
+ *   Scroll to 5000
+ * </button>
+ * <div style="height: 500px; border: 1px solid pink; padding: 10px; border-radius: 10px;">
+ *   <SvelteVirtualList {items} bind:this={virtualList}>
+ *     {#snippet renderItem(item)}
+ *       <div>{item.text}</div>
+ *     {/snippet}
+ *   </SvelteVirtualList>
+ * </div>
+ *
+ * @returns {void}
+ * @throws {Error} If the index is out of bounds and shouldThrowOnBounds is true
+ */
+export const scrollToIndex = (index: number, smoothScroll = true, shouldThrowOnBounds = true) => {
+    // TODO: Implement actual scroll logic
+    console.log(
+        '[VirtualList] scrollToIndex called with:',
+        index,
+        smoothScroll,
+        shouldThrowOnBounds
+    )
+}
