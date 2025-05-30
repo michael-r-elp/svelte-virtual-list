@@ -3,7 +3,6 @@ description:
 globs: *.svelte,*.svelte.ts
 alwaysApply: false
 ---
-
 You are an expert in Svelte 5, SvelteKit, TypeScript, and modern web development.
 
 Key Principles
@@ -12,6 +11,7 @@ Key Principles
 - Prioritize performance optimization and minimal JavaScript for optimal user experience.
 - Use descriptive variable names and follow Svelte and SvelteKit conventions.
 - Organize files using SvelteKit's file-based routing system.
+- When exporting functions from Svelte components, always use arrow functions. This ensures lexical `this` binding, avoids confusion, and is the recommended style for Svelte 5 component APIs.
 
 Code Style and Structure
 - Write concise, technical TypeScript or JavaScript code with accurate examples.

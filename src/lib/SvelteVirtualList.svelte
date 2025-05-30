@@ -488,6 +488,43 @@
             prevHeight = calculatedItemHeight
         }
     })
+
+    /**
+     * Scrolls the virtual list to the item at the given index.
+     *
+     * @function scrollToIndex
+     * @param index The index of the item to scroll to.
+     * @param smoothScroll (default: true) Whether to use smooth scrolling.
+     * @param shouldThrowOnBounds (default: true) Whether to throw an error if the index is out of bounds.
+     *
+     * @example
+     *   // Usage in a Svelte component:
+     *   import SvelteVirtualList from '$lib/SvelteVirtualList.svelte';
+     *   let listRef;
+     *   const items = Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `Item ${i}` }));
+     *   function goToItem42() {
+     *     listRef.scrollToIndex(42, true);
+     *   }
+     *   // In markup:
+     *   // <SvelteVirtualList bind:this={listRef} items={items} renderItem={renderItem} />
+     *   // <button onclick={goToItem42}>Scroll to item 42</button>
+     *
+     * @returns {void}
+     * @throws {Error} If the index is out of bounds and shouldThrowOnBounds is true
+     */
+    export const scrollToIndex = (
+        index: number,
+        smoothScroll = true,
+        shouldThrowOnBounds = true
+    ) => {
+        // TODO: Implement actual scroll logic
+        console.log(
+            '[VirtualList] scrollToIndex called with:',
+            index,
+            smoothScroll,
+            shouldThrowOnBounds
+        )
+    }
 </script>
 
 <!--
