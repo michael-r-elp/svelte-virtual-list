@@ -6,4 +6,7 @@
     },
     "editor.defaultFormatter": "trunk.io",
     "editor.formatOnPaste": true,
+    "[svelte]": {
+        "editor.defaultFormatter": "trunk.io"
+    },
 }

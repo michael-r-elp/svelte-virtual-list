@@ -525,39 +525,46 @@
         smoothScroll = true,
         shouldThrowOnBounds = true
     ): Promise<void> => {
-        if (!viewportElement || !items.length) return
-        let clampedIndex = Math.max(0, Math.min(index, items.length - 1))
-        if ((index < 0 || index >= items.length) && shouldThrowOnBounds) {
-            throw new Error(
-                `scrollToIndex: index ${index} is out of bounds (0-${items.length - 1})`
-            )
+        if (!items.length) return
+        if (!viewportElement) {
+            await tick()
+            if (!viewportElement) return
         }
-        if (mode === 'topToBottom') {
-            const scrollTopTarget = await getScrollOffsetForIndex(
-                heightCache,
-                calculatedItemHeight,
-                clampedIndex
-            )
-            viewportElement.scrollTo({
-                top: scrollTopTarget,
-                behavior: smoothScroll ? 'smooth' : 'auto'
-            })
-        } else if (mode === 'bottomToTop') {
-            // Invert the index for reversed rendering
-            const reversedIndex = items.length - 1 - clampedIndex
-            const itemBottom = await getScrollOffsetForIndex(
-                heightCache,
-                calculatedItemHeight,
-                reversedIndex + 1
-            )
-            const scrollTopTarget = Math.max(0, itemBottom - height)
-            viewportElement.scrollTo({
-                top: scrollTopTarget,
-                behavior: smoothScroll ? 'smooth' : 'auto'
-            })
-        } else {
-            console.warn('scrollToIndex: unknown mode:', mode)
-        }
+        tick().then(async () => {
+            const target = Number.isFinite(index) ? Math.trunc(index) : 0
+            const clampedIndex = Math.max(0, Math.min(target, items.length - 1))
+            if ((target < 0 || target >= items.length) && shouldThrowOnBounds) {
+                throw new Error(
+                    `scrollToIndex: index ${target} is out of bounds (0-${items.length - 1})`
+                )
+            }
+            if (mode === 'topToBottom') {
+                const scrollTopTarget = await getScrollOffsetForIndex(
+                    heightCache,
+                    calculatedItemHeight,
+                    clampedIndex
+                )
+                viewportElement.scrollTo({
+                    top: scrollTopTarget,
+                    behavior: smoothScroll ? 'smooth' : 'auto'
+                })
+            } else if (mode === 'bottomToTop') {
+                // Invert the index for reversed rendering
+                const reversedIndex = items.length - 1 - clampedIndex
+                const itemBottom = await getScrollOffsetForIndex(
+                    heightCache,
+                    calculatedItemHeight,
+                    reversedIndex + 1
+                )
+                const scrollTopTarget = Math.max(0, itemBottom - height)
+                viewportElement.scrollTo({
+                    top: scrollTopTarget,
+                    behavior: smoothScroll ? 'smooth' : 'auto'
+                })
+            } else {
+                console.warn('scrollToIndex: unknown mode:', mode)
+            }
+        })
     }
 </script>
 
