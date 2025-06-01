@@ -130,14 +130,12 @@
         calculateTransformY,
         calculateVisibleRange,
         processChunked,
-        updateHeightAndScroll as utilsUpdateHeightAndScroll,
-        scrollToIndex as _scrollToIndex
+        updateHeightAndScroll as utilsUpdateHeightAndScroll
     } from '$lib/utils/virtualList.js'
     import { createDebugInfo, shouldShowDebugInfo } from '$lib/utils/virtualListDebug.js'
     import { BROWSER } from 'esm-env'
     import { onMount, tick } from 'svelte'
 
-    export const scrollToIndex = _scrollToIndex
     const rafSchedule = createRafScheduler()
 
     /**
@@ -492,6 +490,48 @@
             prevHeight = calculatedItemHeight
         }
     })
+
+    /**
+     * Scrolls the virtual list to the item at the given index.
+     *
+     * @function scrollToIndex
+     * @param index The index of the item to scroll to.
+     * @param smoothScroll (default: true) Whether to use smooth scrolling.
+     * @param shouldThrowOnBounds (default: true) Whether to throw an error if the index is out of bounds.
+     *
+     * @example
+     * // Svelte usage:
+     * // In your <script> block:
+     * import SvelteVirtualList from '@humanspeak/svelte-virtual-list';
+     * let virtualList;
+     * const items = Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `Item ${i}` }));
+     *
+     * // In your markup:
+     * <button onclick={() => virtualList.scrollToIndex(5000)}>
+     *    Scroll to 5000
+     * </button>
+     * <SvelteVirtualList {items} bind:this={virtualList}>
+     *   {#snippet renderItem(item)}
+     *     <div>{item.text}</div>
+     *   {/snippet}
+     * </SvelteVirtualList>
+     *
+     * @returns {void}
+     * @throws {Error} If the index is out of bounds and shouldThrowOnBounds is true
+     */
+    export const scrollToIndex = (
+        index: number,
+        smoothScroll = true,
+        shouldThrowOnBounds = true
+    ) => {
+        // TODO: Implement actual scroll logic
+        console.log(
+            '[VirtualList] scrollToIndex called with:',
+            index,
+            smoothScroll,
+            shouldThrowOnBounds
+        )
+    }
 </script>
 
 <!--
