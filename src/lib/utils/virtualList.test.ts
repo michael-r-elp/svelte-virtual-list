@@ -348,41 +348,41 @@ describe('processChunked', () => {
 })
 
 describe('getScrollOffsetForIndex', () => {
-    it('computes offset using calculatedItemHeight when heightCache is empty', async () => {
+    it('computes offset using calculatedItemHeight when heightCache is empty', () => {
         const heightCache = {}
         const calculatedItemHeight = 40
         const idx = 5
-        const offset = await getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
+        const offset = getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
         expect(offset).toBe(5 * calculatedItemHeight)
     })
 
-    it('computes offset using a partial heightCache (some heights measured)', async () => {
+    it('computes offset using a partial heightCache (some heights measured)', () => {
         const heightCache = { 0: 30, 2: 50, 3: 60 }
         const calculatedItemHeight = 40
         const idx = 5
         // Expected offset: 30 (idx 0) + 40 (idx 1) + 50 (idx 2) + 60 (idx 3) + 40 (idx 4) = 220
-        const offset = await getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
+        const offset = getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
         expect(offset).toBe(220)
     })
 
-    it('computes offset using a full heightCache (all heights measured)', async () => {
+    it('computes offset using a full heightCache (all heights measured)', () => {
         const heightCache = { 0: 30, 1: 40, 2: 50, 3: 60, 4: 70 }
         const calculatedItemHeight = 40
         const idx = 5
         // Expected offset: 30 + 40 + 50 + 60 + 70 = 250
-        const offset = await getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
+        const offset = getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
         expect(offset).toBe(250)
     })
 
     describe('block sums', () => {
-        it('matches legacy logic for all estimated heights', async () => {
+        it('matches legacy logic for all estimated heights', () => {
             const heightCache = {}
             const calculatedItemHeight = 10
             const totalItems = 100
             const blockSums = buildBlockSums(heightCache, calculatedItemHeight, totalItems, 20)
             for (let idx = 0; idx <= totalItems; idx += 10) {
-                const legacy = await getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
-                const block = await getScrollOffsetForIndex(
+                const legacy = getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
+                const block = getScrollOffsetForIndex(
                     heightCache,
                     calculatedItemHeight,
                     idx,
@@ -393,14 +393,14 @@ describe('getScrollOffsetForIndex', () => {
             }
         })
 
-        it('matches legacy logic for partial measured heights', async () => {
+        it('matches legacy logic for partial measured heights', () => {
             const heightCache = { 0: 5, 2: 15, 19: 100 }
             const calculatedItemHeight = 10
             const totalItems = 40
             const blockSums = buildBlockSums(heightCache, calculatedItemHeight, totalItems, 10)
             for (let idx = 0; idx <= totalItems; idx += 7) {
-                const legacy = await getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
-                const block = await getScrollOffsetForIndex(
+                const legacy = getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
+                const block = getScrollOffsetForIndex(
                     heightCache,
                     calculatedItemHeight,
                     idx,
@@ -411,14 +411,14 @@ describe('getScrollOffsetForIndex', () => {
             }
         })
 
-        it('handles block boundary and tail correctly', async () => {
+        it('handles block boundary and tail correctly', () => {
             const heightCache = { 0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10 }
             const calculatedItemHeight = 0
             const totalItems = 10
             const blockSums = buildBlockSums(heightCache, calculatedItemHeight, totalItems, 5)
             // Block sums: [1+2+3+4+5=15], [6+7+8+9+10=40]
             // idx=7: blockIdx=1, offset=15, tail=6+7=13, total=28
-            const offset = await getScrollOffsetForIndex(
+            const offset = getScrollOffsetForIndex(
                 heightCache,
                 calculatedItemHeight,
                 7,
@@ -428,10 +428,10 @@ describe('getScrollOffsetForIndex', () => {
             expect(offset).toBe(28)
         })
 
-        it('returns 0 for idx <= 0', async () => {
+        it('returns 0 for idx <= 0', () => {
             const blockSums = buildBlockSums({}, 10, 10, 5)
-            expect(await getScrollOffsetForIndex({}, 10, 0, blockSums, 5)).toBe(0)
-            expect(await getScrollOffsetForIndex({}, 10, -5, blockSums, 5)).toBe(0)
+            expect(getScrollOffsetForIndex({}, 10, 0, blockSums, 5)).toBe(0)
+            expect(getScrollOffsetForIndex({}, 10, -5, blockSums, 5)).toBe(0)
         })
     })
 })

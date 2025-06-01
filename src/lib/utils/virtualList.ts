@@ -303,20 +303,20 @@ export const buildBlockSums = (
  * @param {number} idx - The index to scroll to (exclusive)
  * @param {number[]} [blockSums] - Optional precomputed block sums (for repeated queries)
  * @param {number} [blockSize=1000] - Block size for memoization
- * @returns {Promise<number>} The total offset in pixels from the top of the list to the start of the item at idx.
+ * @returns {number} The total offset in pixels from the top of the list to the start of the item at idx.
  *
  * @example
  * // For best performance with repeated queries:
  * const blockSums = buildBlockSums(heightCache, calculatedItemHeight, items.length);
- * const offset = await getScrollOffsetForIndex(heightCache, calculatedItemHeight, 12345, blockSums);
+ * const offset = getScrollOffsetForIndex(heightCache, calculatedItemHeight, 12345, blockSums);
  */
-export const getScrollOffsetForIndex = async (
+export const getScrollOffsetForIndex = (
     heightCache: Record<number, number>,
     calculatedItemHeight: number,
     idx: number,
     blockSums?: number[],
     blockSize = 1000
-): Promise<number> => {
+): number => {
     if (idx <= 0) return 0
     if (!blockSums) {
         // Fallback: O(n) for a single query

@@ -520,17 +520,22 @@
      * @returns {void}
      * @throws {Error} If the index is out of bounds and shouldThrowOnBounds is true
      */
-    export const scrollToIndex = async (
+    export const scrollToIndex = (
         index: number,
         smoothScroll = true,
         shouldThrowOnBounds = true
-    ): Promise<void> => {
+    ): void => {
         if (!items.length) return
         if (!viewportElement) {
-            await tick()
-            if (!viewportElement) return
+            tick().then(() => {
+                if (!viewportElement) return
+                doScroll()
+            })
+            return
         }
-        tick().then(async () => {
+        doScroll()
+
+        function doScroll() {
             const target = Number.isFinite(index) ? Math.trunc(index) : 0
             const clampedIndex = Math.max(0, Math.min(target, items.length - 1))
             if ((target < 0 || target >= items.length) && shouldThrowOnBounds) {
@@ -539,7 +544,7 @@
                 )
             }
             if (mode === 'topToBottom') {
-                const scrollTopTarget = await getScrollOffsetForIndex(
+                const scrollTopTarget = getScrollOffsetForIndex(
                     heightCache,
                     calculatedItemHeight,
                     clampedIndex
@@ -551,7 +556,7 @@
             } else if (mode === 'bottomToTop') {
                 // Invert the index for reversed rendering
                 const reversedIndex = items.length - 1 - clampedIndex
-                const itemBottom = await getScrollOffsetForIndex(
+                const itemBottom = getScrollOffsetForIndex(
                     heightCache,
                     calculatedItemHeight,
                     reversedIndex + 1
@@ -564,7 +569,7 @@
             } else {
                 console.warn('scrollToIndex: unknown mode:', mode)
             }
-        })
+        }
     }
 </script>
 
