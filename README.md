@@ -32,7 +32,7 @@ A high-performance virtual list component for Svelte 5 applications that efficie
 
 ## scrollToIndex: Programmatic Scrolling
 
-You can now programmatically scroll to any item in the list using the `scrollToIndex` method. This is useful for chat apps, jump-to-item navigation, and more. Thank you for the feature request!
+You can now programmatically scroll to any item in the list using the `scrollToIndex` method. This is useful for chat apps, jump-to-item navigation, and more. Thank you for the feature request.
 
 ### Usage Example
 

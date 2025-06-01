@@ -81,7 +81,7 @@
     - Progressive initialization
     - Buffer zone management
     - Chunked processing system
-    - **Programmatic scrolling with `scrollToIndex`** (NEW)
+    - **Programmatic scrolling with `scrollToIndex`**
 
 2. **Performance**
 
