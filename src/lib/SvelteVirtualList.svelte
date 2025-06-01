@@ -130,7 +130,8 @@
         calculateTransformY,
         calculateVisibleRange,
         processChunked,
-        updateHeightAndScroll as utilsUpdateHeightAndScroll
+        updateHeightAndScroll as utilsUpdateHeightAndScroll,
+        getScrollOffsetForIndex
     } from '$lib/utils/virtualList.js'
     import { createDebugInfo, shouldShowDebugInfo } from '$lib/utils/virtualListDebug.js'
     import { BROWSER } from 'esm-env'
@@ -519,11 +520,11 @@
      * @returns {void}
      * @throws {Error} If the index is out of bounds and shouldThrowOnBounds is true
      */
-    export const scrollToIndex = (
+    export const scrollToIndex = async (
         index: number,
         smoothScroll = true,
         shouldThrowOnBounds = true
-    ) => {
+    ): Promise<void> => {
         if (!viewportElement || !items.length) return
         let clampedIndex = Math.max(0, Math.min(index, items.length - 1))
         if ((index < 0 || index >= items.length) && shouldThrowOnBounds) {
@@ -532,7 +533,11 @@
             )
         }
         if (mode === 'topToBottom') {
-            const scrollTopTarget = clampedIndex * calculatedItemHeight
+            const scrollTopTarget = await getScrollOffsetForIndex(
+                heightCache,
+                calculatedItemHeight,
+                clampedIndex
+            )
             viewportElement.scrollTo({
                 top: scrollTopTarget,
                 behavior: smoothScroll ? 'smooth' : 'auto'
@@ -540,7 +545,11 @@
         } else if (mode === 'bottomToTop') {
             // Invert the index for reversed rendering
             const reversedIndex = items.length - 1 - clampedIndex
-            const itemBottom = (reversedIndex + 1) * calculatedItemHeight
+            const itemBottom = await getScrollOffsetForIndex(
+                heightCache,
+                calculatedItemHeight,
+                reversedIndex + 1
+            )
             const scrollTopTarget = Math.max(0, itemBottom - height)
             viewportElement.scrollTo({
                 top: scrollTopTarget,

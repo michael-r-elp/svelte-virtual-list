@@ -5,6 +5,7 @@ import {
     calculateScrollPosition,
     calculateTransformY,
     calculateVisibleRange,
+    getScrollOffsetForIndex,
     processChunked,
     updateHeightAndScroll
 } from './virtualList.js'
@@ -165,7 +166,7 @@ describe('calculateAverageHeight', () => {
 
         const existingCache = { 0: 40 }
 
-        const result = calculateAverageHeight(mockElements, { start: 0 }, existingCache, 0, 40)
+        const result = calculateAverageHeight(mockElements, { start: 0 }, existingCache, 40)
 
         expect(result.updatedHeightCache).toEqual(existingCache)
     })
@@ -219,7 +220,7 @@ describe('calculateAverageHeight', () => {
 
         const existingCache = { 1: 40 } // Cache for second element
 
-        const result = calculateAverageHeight(mockElements, { start: 0 }, existingCache, -1, 40)
+        const result = calculateAverageHeight(mockElements, { start: 0 }, existingCache, 40)
 
         expect(result.newHeight).toBe(35) // (30 + 40) / 2
         expect(result.newLastMeasuredIndex).toBe(0)
@@ -342,5 +343,33 @@ describe('processChunked', () => {
 
         expect(onProgress).toHaveBeenCalledTimes(3)
         expect(onComplete).toHaveBeenCalledOnce()
+    })
+})
+
+describe('getScrollOffsetForIndex', () => {
+    it('computes offset using calculatedItemHeight when heightCache is empty', async () => {
+        const heightCache = {}
+        const calculatedItemHeight = 40
+        const idx = 5
+        const offset = await getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
+        expect(offset).toBe(5 * calculatedItemHeight)
+    })
+
+    it('computes offset using a partial heightCache (some heights measured)', async () => {
+        const heightCache = { 0: 30, 2: 50, 3: 60 }
+        const calculatedItemHeight = 40
+        const idx = 5
+        // Expected offset: 30 (idx 0) + 40 (idx 1) + 50 (idx 2) + 60 (idx 3) + 40 (idx 4) = 220
+        const offset = await getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
+        expect(offset).toBe(220)
+    })
+
+    it('computes offset using a full heightCache (all heights measured)', async () => {
+        const heightCache = { 0: 30, 1: 40, 2: 50, 3: 60, 4: 70 }
+        const calculatedItemHeight = 40
+        const idx = 5
+        // Expected offset: 30 + 40 + 50 + 60 + 70 = 250
+        const offset = await getScrollOffsetForIndex(heightCache, calculatedItemHeight, idx)
+        expect(offset).toBe(250)
     })
 })

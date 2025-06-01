@@ -257,3 +257,39 @@ export const processChunked = async (
 
     await processChunk(0)
 }
+
+/**
+ * Calculates the scroll offset (in pixels) needed to bring a specific item into view in a virtual list.
+ *
+ * This function sums the heights of all items up to (but not including) the given index, using the heightCache
+ * for measured items and falling back to calculatedItemHeight for unmeasured ones. This ensures accurate
+ * scroll positioning for both fixed and variable-height lists.
+ *
+ * ### Why use this?
+ * - Ensures precise scroll targeting for variable-height virtual lists.
+ * - Supports partial measurement: uses cached heights where available, estimated height elsewhere.
+ * - Used by scrollToIndex to programmatically scroll to any item.
+ *
+ * @param {Record<number, number>} heightCache - A map of item indices to their measured heights (in pixels).
+ * @param {number} calculatedItemHeight - The estimated height (in pixels) for unmeasured items.
+ * @param {number} idx - The index of the item to scroll to (exclusive; sums up to this index).
+ *
+ * @returns {Promise<number>} The total offset in pixels from the top of the list to the start of the item at idx.
+ *
+ * @example
+ * // Svelte usage:
+ * // Assume you have a heightCache, calculatedItemHeight, and want to scroll to item 100
+ * const offset = await getScrollOffsetForIndex(heightCache, calculatedItemHeight, 100);
+ * viewportElement.scrollTo({ top: offset, behavior: 'smooth' });
+ */
+export const getScrollOffsetForIndex = async (
+    heightCache: Record<number, number>,
+    calculatedItemHeight: number,
+    idx: number
+): Promise<number> => {
+    let offset = 0
+    for (let i = 0; i < idx; i++) {
+        offset += heightCache[i] ?? calculatedItemHeight
+    }
+    return offset
+}

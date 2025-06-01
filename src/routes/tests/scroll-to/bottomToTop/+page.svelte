@@ -19,7 +19,7 @@
 <div>
     <input type="range" min="0" max="10000" bind:value={index} />
     <button
-        onclick={() => virtualList.scrollToIndex(index, true, false)}
+        onclick={() => virtualList.scrollToIndex(index, false, false)}
         style="margin-bottom: 10px;"
     >
         Scroll to {index}
