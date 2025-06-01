@@ -12,16 +12,24 @@
         id: i,
         text: `Item ${i}`
     }))
+
+    let index = $state(5000)
 </script>
 
-<button on:click={() => virtualList.scrollToIndex(5000)} style="margin-bottom: 10px;">
-    Scroll to 5000
-</button>
+<div>
+    <input type="range" min="0" max="10000" bind:value={index} />
+    <button
+        onclick={() => virtualList.scrollToIndex(index, true, false)}
+        style="margin-bottom: 10px;"
+    >
+        Scroll to {index}
+    </button>
+</div>
 <div
     class="test-container"
     style="height: 500px; border: 1px solid pink;padding: 10px; border-radius: 10px;"
 >
-    <SvelteVirtualList {items} testId="basic-list" bind:this={virtualList} debug>
+    <SvelteVirtualList {items} testId="basic-list" mode="topToBottom" bind:this={virtualList} debug>
         {#snippet renderItem(item: Item)}
             <div class="test-item" data-testid="list-item-{item.id}">
                 {item.text}

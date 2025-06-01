@@ -524,13 +524,31 @@
         smoothScroll = true,
         shouldThrowOnBounds = true
     ) => {
-        // TODO: Implement actual scroll logic
-        console.log(
-            '[VirtualList] scrollToIndex called with:',
-            index,
-            smoothScroll,
-            shouldThrowOnBounds
-        )
+        if (!viewportElement || !items.length) return
+        let clampedIndex = Math.max(0, Math.min(index, items.length - 1))
+        if ((index < 0 || index >= items.length) && shouldThrowOnBounds) {
+            throw new Error(
+                `scrollToIndex: index ${index} is out of bounds (0-${items.length - 1})`
+            )
+        }
+        if (mode === 'topToBottom') {
+            const scrollTopTarget = clampedIndex * calculatedItemHeight
+            viewportElement.scrollTo({
+                top: scrollTopTarget,
+                behavior: smoothScroll ? 'smooth' : 'auto'
+            })
+        } else if (mode === 'bottomToTop') {
+            // Invert the index for reversed rendering
+            const reversedIndex = items.length - 1 - clampedIndex
+            const itemBottom = (reversedIndex + 1) * calculatedItemHeight
+            const scrollTopTarget = Math.max(0, itemBottom - height)
+            viewportElement.scrollTo({
+                top: scrollTopTarget,
+                behavior: smoothScroll ? 'smooth' : 'auto'
+            })
+        } else {
+            console.warn('scrollToIndex: unknown mode:', mode)
+        }
     }
 </script>
 
