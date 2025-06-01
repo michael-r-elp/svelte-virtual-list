@@ -15,7 +15,7 @@ test.describe('Scrolling Performance', () => {
             for (let i = 0; i < 10; i++) {
                 // Start timing just before scroll
                 const start = performance.now()
-                viewport.scrollTop += 500
+                if (viewport) viewport.scrollTop += 500
 
                 // Wait for next frame to ensure render completed
                 await new Promise((resolve) => requestAnimationFrame(resolve))
@@ -57,7 +57,7 @@ test.describe('Scrolling Performance', () => {
 
             // Rapid scrolling simulation
             for (let i = 0; i < 5; i++) {
-                viewport.scrollTop += 2000
+                if (viewport) viewport.scrollTop += 2000
                 await new Promise((resolve) => setTimeout(resolve, 100))
             }
 
@@ -79,9 +79,9 @@ test.describe('Scrolling Performance', () => {
         await page.evaluate(async () => {
             const viewport = document.querySelector('[data-testid="performance-list-viewport"]')
             for (let i = 0; i < 20; i++) {
-                viewport.scrollTop += 1000
+                if (viewport) viewport.scrollTop += 1000
                 await new Promise((resolve) => setTimeout(resolve, 50))
-                viewport.scrollTop -= 500
+                if (viewport) viewport.scrollTop -= 500
                 await new Promise((resolve) => setTimeout(resolve, 50))
             }
         })
@@ -103,7 +103,7 @@ test.describe('Scrolling Performance', () => {
         const initialRenderTime = await page.evaluate(async () => {
             const start = performance.now()
             const viewport = document.querySelector('[data-testid="performance-list-viewport"]')
-            viewport.scrollTop = 0
+            if (viewport) viewport.scrollTop = 0
             await new Promise((resolve) => setTimeout(resolve, 100))
             return performance.now() - start
         })
@@ -112,7 +112,7 @@ test.describe('Scrolling Performance', () => {
         const midScrollRenderTime = await page.evaluate(async () => {
             const start = performance.now()
             const viewport = document.querySelector('[data-testid="performance-list-viewport"]')
-            viewport.scrollTop = 50000
+            if (viewport) viewport.scrollTop = 50000
             await new Promise((resolve) => setTimeout(resolve, 100))
             return performance.now() - start
         })
