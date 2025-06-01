@@ -1,26 +1,20 @@
-import { FlatCompat } from '@eslint/eslintrc'
+import { includeIgnoreFile } from '@eslint/compat'
 import js from '@eslint/js'
-import typescriptEslint from '@typescript-eslint/eslint-plugin'
-import tsParser from '@typescript-eslint/parser'
+import prettier from 'eslint-config-prettier'
+import svelte from 'eslint-plugin-svelte'
 import globals from 'globals'
-import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import parser from 'svelte-eslint-parser'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
-})
+import ts from 'typescript-eslint'
+const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url))
 
 export default [
+    includeIgnoreFile(gitignorePath),
     {
         ignores: [
             '**/.DS_Store',
             '**/node_modules',
             'postcss.config.cjs',
+            'coverage',
             '**/build',
             '.svelte-kit',
             'package',
@@ -36,31 +30,18 @@ export default [
             '**/*.test.ts'
         ]
     },
-    ...compat.extends(
-        'eslint:recommended',
-        'plugin:@typescript-eslint/recommended',
-        'plugin:svelte/recommended',
-        'prettier'
-    ),
+    js.configs.recommended,
+    ...ts.configs.recommended,
+    ...svelte.configs['flat/recommended'],
+    prettier,
+    ...svelte.configs['flat/prettier'],
     {
-        plugins: {
-            '@typescript-eslint': typescriptEslint
-        },
-
         languageOptions: {
             globals: {
                 ...globals.browser,
                 ...globals.node
-            },
-
-            parser: tsParser,
-            ecmaVersion: 2020,
-            sourceType: 'module',
-            parserOptions: {
-                extraFileExtensions: ['.svelte']
             }
         },
-
         rules: {
             semi: ['warn', 'never'],
             quotes: ['error', 'single'],
@@ -112,14 +93,9 @@ export default [
     },
     {
         files: ['**/*.svelte'],
-
         languageOptions: {
-            parser: parser,
-            ecmaVersion: 5,
-            sourceType: 'script',
-
             parserOptions: {
-                parser: '@typescript-eslint/parser'
+                parser: ts.parser
             }
         }
     }

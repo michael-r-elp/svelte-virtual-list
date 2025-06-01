@@ -257,3 +257,80 @@ export const processChunked = async (
 
     await processChunk(0)
 }
+
+/**
+ * Builds a block sum array for fast offset calculation in large virtual lists.
+ * Each entry in the array is the total height up to the end of that block (exclusive).
+ *
+ * @param {Record<number, number>} heightCache - Map of measured item heights
+ * @param {number} calculatedItemHeight - Estimated height for unmeasured items
+ * @param {number} totalItems - Total number of items in the list
+ * @param {number} blockSize - Number of items per block
+ * @returns {number[]} Array of prefix sums at each block boundary
+ */
+export const buildBlockSums = (
+    heightCache: Record<number, number>,
+    calculatedItemHeight: number,
+    totalItems: number,
+    blockSize = 1000
+): number[] => {
+    const blockSums: number[] = []
+    let sum = 0
+    for (let i = 0; i < totalItems; i++) {
+        sum += heightCache[i] ?? calculatedItemHeight
+        if ((i + 1) % blockSize === 0) {
+            blockSums.push(sum)
+        }
+    }
+    // Push the last partial block if needed
+    if (totalItems % blockSize !== 0) {
+        blockSums.push(sum)
+    }
+    return blockSums
+}
+
+/**
+ * Calculates the scroll offset (in pixels) needed to bring a specific item into view in a virtual list.
+ *
+ * Uses block memoization for efficient O(b) offset calculation, where b = block size (default 1000).
+ * For very large lists, this avoids O(n) iteration for every scroll.
+ *
+ * - For indices >= blockSize, sums the block prefix, then only iterates the tail within the block.
+ * - For small indices, falls back to the original logic.
+ *
+ * @param {Record<number, number>} heightCache - Map of measured item heights
+ * @param {number} calculatedItemHeight - Estimated height for unmeasured items
+ * @param {number} idx - The index to scroll to (exclusive)
+ * @param {number[]} [blockSums] - Optional precomputed block sums (for repeated queries)
+ * @param {number} [blockSize=1000] - Block size for memoization
+ * @returns {number} The total offset in pixels from the top of the list to the start of the item at idx.
+ *
+ * @example
+ * // For best performance with repeated queries:
+ * const blockSums = buildBlockSums(heightCache, calculatedItemHeight, items.length);
+ * const offset = getScrollOffsetForIndex(heightCache, calculatedItemHeight, 12345, blockSums);
+ */
+export const getScrollOffsetForIndex = (
+    heightCache: Record<number, number>,
+    calculatedItemHeight: number,
+    idx: number,
+    blockSums?: number[],
+    blockSize = 1000
+): number => {
+    if (idx <= 0) return 0
+    if (!blockSums) {
+        // Fallback: O(n) for a single query
+        let offset = 0
+        for (let i = 0; i < idx; i++) {
+            offset += heightCache[i] ?? calculatedItemHeight
+        }
+        return offset
+    }
+    const blockIdx = Math.floor(idx / blockSize)
+    let offset = blockIdx > 0 ? blockSums[blockIdx - 1] : 0
+    const start = blockIdx * blockSize
+    for (let i = start; i < idx; i++) {
+        offset += heightCache[i] ?? calculatedItemHeight
+    }
+    return offset
+}

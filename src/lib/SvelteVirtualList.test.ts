@@ -1,8 +1,8 @@
+import SvelteVirtualList from '$lib/SvelteVirtualList.svelte'
+import type { SvelteVirtualListProps } from '$lib/types.js'
 import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/svelte'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
-import SvelteVirtualList from './SvelteVirtualList.svelte'
-import type { SvelteVirtualListProps } from './types.js'
 
 // Add ResizeObserver mock
 class ResizeObserverMock {

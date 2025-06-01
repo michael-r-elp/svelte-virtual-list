@@ -24,11 +24,11 @@
         }
     },
     "dependencies": {
-        "@sentry/cloudflare": "^9.23.0",
-        "@sentry/sveltekit": "^9.23.0"
+        "@sentry/cloudflare": "^9.24.0",
+        "@sentry/sveltekit": "^9.24.0"
     },
     "devDependencies": {
-        "@cloudflare/workers-types": "^4.20250528.0",
+        "@cloudflare/workers-types": "^4.20250601.0",
         "@eslint/compat": "^1.2.9",
         "@humanspeak/svelte-virtual-list": "file:..",
         "@internationalized/date": "^3.8.1",
@@ -48,10 +48,10 @@
         "@typescript-eslint/eslint-plugin": "^8.33.0",
         "@typescript-eslint/parser": "^8.33.0",
         "autoprefixer": "^10.4.21",
-        "bits-ui": "^2.2.0",
+        "bits-ui": "^2.4.1",
         "clsx": "^2.1.1",
         "embla-carousel-svelte": "^8.6.0",
-        "eslint": "^9.27.0",
+        "eslint": "^9.28.0",
         "eslint-config-prettier": "^10.1.5",
         "eslint-plugin-import": "^2.31.0",
         "eslint-plugin-svelte": "^3.9.0",
@@ -67,24 +67,24 @@
         "prettier": "^3.5.3",
         "prettier-plugin-organize-imports": "^4.1.0",
         "prettier-plugin-svelte": "^3.4.0",
-        "prettier-plugin-tailwindcss": "^0.6.11",
+        "prettier-plugin-tailwindcss": "^0.6.12",
         "puppeteer": "^24.9.0",
         "shiki": "^3.4.2",
-        "svelte": "^5.33.4",
+        "svelte": "^5.33.11",
         "svelte-check": "^4.2.1",
-        "svelte-sonner": "^1.0.3",
+        "svelte-sonner": "^1.0.4",
         "sveltekit-superforms": "^2.25.0",
         "tailwind-merge": "^3.3.0",
         "tailwind-variants": "^1.0.0",
         "tailwindcss": "^4.1.8",
         "tsx": "^4.19.4",
-        "tw-animate-css": "^1.3.0",
+        "tw-animate-css": "^1.3.3",
         "typescript": "^5.8.3",
         "typescript-eslint": "^8.33.0",
         "vaul-svelte": "^1.0.0-next.7",
         "vite": "^6.3.5",
         "vitest": "^3.1.4",
-        "zod": "^3.25.32"
+        "zod": "^3.25.46"
     },
     "volta": {
         "node": "22.16.0"

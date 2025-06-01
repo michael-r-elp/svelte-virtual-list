@@ -122,20 +122,22 @@
      * - Progressive size adjustment system
      */
 
-    import { onMount } from 'svelte'
-    import { BROWSER } from 'esm-env'
-    import type { SvelteVirtualListProps } from './types.js'
+    import type { SvelteVirtualListProps } from '$lib/types.js'
+    import { calculateAverageHeightDebounced } from '$lib/utils/heightCalculation.js'
+    import { createRafScheduler } from '$lib/utils/raf.js'
     import {
         calculateScrollPosition,
-        calculateVisibleRange,
         calculateTransformY,
+        calculateVisibleRange,
+        processChunked,
         updateHeightAndScroll as utilsUpdateHeightAndScroll,
-        calculateAverageHeight,
-        processChunked
-    } from './utils/virtualList.js'
-    import { rafSchedule } from './utils/raf.js'
-    import { shouldShowDebugInfo, createDebugInfo } from './utils/virtualListDebug.js'
-    import { calculateAverageHeightDebounced } from './utils/heightCalculation.js'
+        getScrollOffsetForIndex
+    } from '$lib/utils/virtualList.js'
+    import { createDebugInfo, shouldShowDebugInfo } from '$lib/utils/virtualListDebug.js'
+    import { BROWSER } from 'esm-env'
+    import { onMount, tick } from 'svelte'
+
+    const rafSchedule = createRafScheduler()
 
     /**
      * Core configuration props with default values
@@ -253,7 +255,7 @@
             const targetScrollTop = Math.max(0, totalHeight - height)
 
             // Add delay to ensure layout is complete
-            setTimeout(() => {
+            tick().then(() => {
                 if (viewportElement) {
                     // Start at the bottom for bottom-to-top mode
                     viewportElement.scrollTop = targetScrollTop
@@ -268,7 +270,7 @@
                         initialized = true
                     })
                 }
-            }, 50)
+            })
         }
     })
 
@@ -354,12 +356,12 @@
      */
     const updateHeightAndScroll = (immediate = false) => {
         if (!initialized && mode === 'bottomToTop') {
-            setTimeout(() => {
+            tick().then(() => {
                 if (containerElement) {
                     const initialHeight = containerElement.getBoundingClientRect().height
                     height = initialHeight
 
-                    setTimeout(() => {
+                    tick().then(() => {
                         if (containerElement && viewportElement) {
                             const finalHeight = containerElement.getBoundingClientRect().height
                             height = finalHeight
@@ -386,9 +388,9 @@
                                 }
                             })
                         }
-                    }, 100)
+                    })
                 }
-            }, 100)
+            })
             return
         }
 
@@ -489,6 +491,86 @@
             prevHeight = calculatedItemHeight
         }
     })
+
+    /**
+     * Scrolls the virtual list to the item at the given index.
+     *
+     * @function scrollToIndex
+     * @param index The index of the item to scroll to.
+     * @param smoothScroll (default: true) Whether to use smooth scrolling.
+     * @param shouldThrowOnBounds (default: true) Whether to throw an error if the index is out of bounds.
+     *
+     * @example
+     * // Svelte usage:
+     * // In your <script> block:
+     * import SvelteVirtualList from '@humanspeak/svelte-virtual-list';
+     * let virtualList;
+     * const items = Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `Item ${i}` }));
+     *
+     * // In your markup:
+     * <button onclick={() => virtualList.scrollToIndex(5000)}>
+     *    Scroll to 5000
+     * </button>
+     * <SvelteVirtualList {items} bind:this={virtualList}>
+     *   {#snippet renderItem(item)}
+     *     <div>{item.text}</div>
+     *   {/snippet}
+     * </SvelteVirtualList>
+     *
+     * @returns {void}
+     * @throws {Error} If the index is out of bounds and shouldThrowOnBounds is true
+     */
+    export const scrollToIndex = (
+        index: number,
+        smoothScroll = true,
+        shouldThrowOnBounds = true
+    ): void => {
+        if (!items.length) return
+        if (!viewportElement) {
+            tick().then(() => {
+                if (!viewportElement) return
+                doScroll()
+            })
+            return
+        }
+        doScroll()
+
+        function doScroll() {
+            const target = Number.isFinite(index) ? Math.trunc(index) : 0
+            const clampedIndex = Math.max(0, Math.min(target, items.length - 1))
+            if ((target < 0 || target >= items.length) && shouldThrowOnBounds) {
+                throw new Error(
+                    `scrollToIndex: index ${target} is out of bounds (0-${items.length - 1})`
+                )
+            }
+            if (mode === 'topToBottom') {
+                const scrollTopTarget = getScrollOffsetForIndex(
+                    heightCache,
+                    calculatedItemHeight,
+                    clampedIndex
+                )
+                viewportElement.scrollTo({
+                    top: scrollTopTarget,
+                    behavior: smoothScroll ? 'smooth' : 'auto'
+                })
+            } else if (mode === 'bottomToTop') {
+                // Invert the index for reversed rendering
+                const reversedIndex = items.length - 1 - clampedIndex
+                const itemBottom = getScrollOffsetForIndex(
+                    heightCache,
+                    calculatedItemHeight,
+                    reversedIndex + 1
+                )
+                const scrollTopTarget = Math.max(0, itemBottom - height)
+                viewportElement.scrollTo({
+                    top: scrollTopTarget,
+                    behavior: smoothScroll ? 'smooth' : 'auto'
+                })
+            } else {
+                console.warn('scrollToIndex: unknown mode:', mode)
+            }
+        }
+    }
 </script>
 
 <!--

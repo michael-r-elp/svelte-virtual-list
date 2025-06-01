@@ -28,6 +28,40 @@ A high-performance virtual list component for Svelte 5 applications that efficie
 - 🧠 Memory-optimized for 10k+ items
 - 🧪 Comprehensive test coverage (vitest and playwright)
 - 🚀 Progressive initialization for large datasets
+- 🕹️ Programmatic scrolling with `scrollToIndex`
+
+## scrollToIndex: Programmatic Scrolling
+
+You can now programmatically scroll to any item in the list using the `scrollToIndex` method. This is useful for chat apps, jump-to-item navigation, and more. Thank you for the feature request.
+
+### Usage Example
+
+```svelte
+<script lang="ts">
+    import SvelteVirtualList from '@humanspeak/svelte-virtual-list'
+    let listRef
+    const items = Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `Item ${i}` }))
+
+    function goToItem5000() {
+        // Scroll to item 5000 with smooth scrolling
+        listRef.scrollToIndex(5000, true)
+    }
+</script>
+
+<button on:click={goToItem5000}> Scroll to item 5000 </button>
+<SvelteVirtualList {items} bind:this={listRef}>
+    {#snippet renderItem(item)}
+        <div>{item.text}</div>
+    {/snippet}
+</SvelteVirtualList>
+```
+
+### API
+
+- `scrollToIndex(index: number, smoothScroll = true, shouldThrowOnBounds = true)`
+    - `index`: The item index to scroll to (0-based)
+    - `smoothScroll`: If true, uses smooth scrolling (default: true)
+    - `shouldThrowOnBounds`: If true, throws if index is out of bounds (default: true)
 
 ## Installation
 

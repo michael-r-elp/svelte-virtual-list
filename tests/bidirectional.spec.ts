@@ -19,8 +19,8 @@ test.describe('Bidirectional Scrolling', () => {
         // Check bottom-to-top list
         const lastItemVisible = await page.evaluate(() => {
             const viewport = document.querySelector('[data-testid="bottom-to-top-viewport"]')
-            viewport.scrollTop = viewport.scrollHeight
-            return true
+            if (viewport) viewport.scrollTop = viewport.scrollHeight
+            return !!viewport
         })
         expect(lastItemVisible).toBe(true)
 
@@ -32,13 +32,13 @@ test.describe('Bidirectional Scrolling', () => {
         // Scroll top-to-bottom list
         await page.evaluate(() => {
             const ttbList = document.querySelector('[data-testid="top-to-bottom-viewport"]')
-            ttbList.scrollTop = 1000
+            if (ttbList) ttbList.scrollTop = 1000
         })
 
         // Scroll bottom-to-top list
         await page.evaluate(() => {
             const bttList = document.querySelector('[data-testid="bottom-to-top-viewport"]')
-            bttList.scrollTop = 1000
+            if (bttList) bttList.scrollTop = 1000
         })
 
         // Wait for rendering

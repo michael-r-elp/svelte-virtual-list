@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { rafSchedule } from './raf.js'
+import { createRafScheduler } from './raf.js'
 
-describe('rafSchedule', () => {
+describe('createRafScheduler', () => {
+    let rafSchedule: (fn: () => void) => void
+
     beforeEach(() => {
+        rafSchedule = createRafScheduler()
+
         // Mock requestAnimationFrame
         vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
             setTimeout(cb, 0)

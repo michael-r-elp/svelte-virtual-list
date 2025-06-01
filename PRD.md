@@ -63,6 +63,12 @@
 - Optimized debug output
 - Status: **Completed**
 
+### Phase 9: Programmatic Scrolling
+
+- Added `scrollToIndex` method for programmatic scrolling to any item in the list
+- Enables chat apps, jump-to-item navigation, and more
+- Status: **Completed**
+
 ## Current Implementation
 
 ### Core Features
@@ -75,6 +81,7 @@
     - Progressive initialization
     - Buffer zone management
     - Chunked processing system
+    - **Programmatic scrolling with `scrollToIndex`**
 
 2. **Performance**
 
@@ -151,6 +158,7 @@
     - Keyboard navigation
     - Dynamic content updates
     - Accessibility improvements
+    - **Enhancements to programmatic scrolling (scrollToIndex)**
 
 ### Medium Term
 
@@ -180,6 +188,7 @@
     - Dynamic height handling
     - Smooth animations
     - Large dataset support
+    - **Programmatic scroll targeting (scrollToIndex)**
 
 2. **Performance**
 
