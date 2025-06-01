@@ -1,7 +1,7 @@
 import { sentrySvelteKit } from '@sentry/sveltekit'
 import { sveltekit } from '@sveltejs/kit/vite'
-import { defineConfig } from 'vitest/config'
 import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
     plugins: [
