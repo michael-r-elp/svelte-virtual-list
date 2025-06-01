@@ -627,7 +627,7 @@
                         )}
                         {debugFunction
                             ? debugFunction(debugInfo)
-                            : console.log('Virtual List Debug:', debugInfo)}
+                            : console.info('Virtual List Debug:', debugInfo)}
                     {/if}
                     <!-- Render each visible item -->
                     <div bind:this={itemElements[i]}>
