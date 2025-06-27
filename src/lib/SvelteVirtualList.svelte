@@ -1,45 +1,63 @@
 <!--
-    @component
-    A high-performance virtualized list component that efficiently renders large datasets
-    by only mounting DOM nodes for visible items and a small buffer. Optimized for handling
-    lists of 10k+ items through chunked processing and progressive initialization.
+    @component SvelteVirtualList
 
-    Props:
-    - `items` - Array of items to render
-    - `defaultEstimatedItemHeight` - Initial height estimate for items (default: 40px)
-    - `mode` - Scroll direction: 'topToBottom' or 'bottomToTop' (default: 'topToBottom')
-    - `debug` - Enable debug logging (default: false)
-    - `bufferSize` - Number of items to render outside visible area (default: 20)
-    - `containerClass` - Custom class for container element
-    - `viewportClass` - Custom class for viewport element
-    - `contentClass` - Custom class for content wrapper
-    - `itemsClass` - Custom class for items wrapper
-    - `debugFunction` - Custom debug logging function
-    - `testId` - Base test ID for component elements
+    A high-performance, memory-efficient virtualized list component for Svelte 5.
+    Renders only visible items plus a buffer, supporting dynamic item heights,
+    bi-directional (top-to-bottom and bottom-to-top) scrolling, and programmatic control.
 
-    Usage:
+    =============================
+    ==  Key Features           ==
+    =============================
+    - Dynamic item height support (no fixed height required)
+    - Top-to-bottom and bottom-to-top (chat-style) scrolling
+    - Programmatic scrolling with flexible alignment (top, bottom, auto)
+    - Smooth scrolling and buffer size configuration
+    - SSR compatible and hydration-friendly
+    - TypeScript and Svelte 5 runes/snippets support
+    - Customizable styling via class props
+    - Debug mode for development and testing
+    - Optimized for large lists (10k+ items)
+    - Comprehensive test coverage (unit and E2E)
+
+    =============================
+    ==  Usage Example          ==
+    =============================
     ```svelte
     <SvelteVirtualList
         items={data}
-        defaultEstimatedItemHeight={40}
-        mode="topToBottom"
+        mode="bottomToTop"
+        bind:this={listRef}
     >
-        {#snippet renderItem(item, index)}
-            <div class="item">{item.text}</div>
+        {#snippet renderItem(item)}
+            <div>{item.text}</div>
         {/snippet}
     </SvelteVirtualList>
     ```
 
-    Features:
-    - Dynamic height calculation
-    - Bidirectional scrolling
-    - Configurable buffer size
-    - Debug mode
-    - Custom styling
-    - Progressive initialization for large datasets
-    - Memory-optimized for 10k+ items
-    - Chunked processing for smooth performance
-    - Progress tracking during initialization
+    =============================
+    ==  Architecture Notes      ==
+    =============================
+    - Uses a four-layer DOM structure for optimal performance
+    - Only visible items + buffer are mounted in the DOM
+    - Height caching and estimation for dynamic content
+    - Handles resize events and dynamic content changes
+    - Supports chunked initialization for very large lists
+    - All scrolling logic is centralized in the scroll() method
+    - Bi-directional support: mode="topToBottom" or "bottomToTop"
+    - Designed for extensibility and easy debugging
+
+    =============================
+    ==  For Contributors        ==
+    =============================
+    - Please keep all scrolling logic in the scroll() method
+    - Add new features behind feature flags or as optional props
+    - Write tests for all new features (see /test and /tests/scroll)
+    - Use TypeScript and Svelte 5 runes for all new code
+    - Document all exported functions and props with JSDoc
+    - See README.md for API and usage details
+    - For questions, open an issue or discussion on GitHub
+
+    MIT License © Humanspeak, Inc.
 -->
 
 <script lang="ts">
@@ -122,16 +140,20 @@
      * - Progressive size adjustment system
      */
 
-    import type { SvelteVirtualListProps } from '$lib/types.js'
+    import {
+        DEFAULT_SCROLL_OPTIONS,
+        type SvelteVirtualListProps,
+        type SvelteVirtualListScrollOptions
+    } from '$lib/types.js'
     import { calculateAverageHeightDebounced } from '$lib/utils/heightCalculation.js'
     import { createRafScheduler } from '$lib/utils/raf.js'
     import {
         calculateScrollPosition,
         calculateTransformY,
         calculateVisibleRange,
+        getScrollOffsetForIndex,
         processChunked,
-        updateHeightAndScroll as utilsUpdateHeightAndScroll,
-        getScrollOffsetForIndex
+        updateHeightAndScroll as utilsUpdateHeightAndScroll
     } from '$lib/utils/virtualList.js'
     import { createDebugInfo, shouldShowDebugInfo } from '$lib/utils/virtualListDebug.js'
     import { BROWSER } from 'esm-env'
@@ -495,6 +517,9 @@
     /**
      * Scrolls the virtual list to the item at the given index.
      *
+     * @deprecated This function is deprecated and will be removed in a future version.
+     * Use the new scroll method from the component instance instead.
+     *
      * @function scrollToIndex
      * @param index The index of the item to scroll to.
      * @param smoothScroll (default: true) Whether to use smooth scrolling.
@@ -525,50 +550,136 @@
         smoothScroll = true,
         shouldThrowOnBounds = true
     ): void => {
+        // Deprecation warning
+        console.warn(
+            'SvelteVirtualList: scrollToIndex is deprecated and will be removed in a future version. ' +
+                'Use the new scroll method from the component instance instead.'
+        )
+
+        // Call the new scroll function with the provided parameters
+        scroll({ index, smoothScroll, shouldThrowOnBounds })
+    }
+
+    /**
+     * Scrolls the virtual list to the item at the given index using a type-based options approach.
+     *
+     * @function scroll
+     * @param options Configuration options for scrolling behavior.
+     *
+     * @example
+     * // Svelte usage:
+     * // In your <script> block:
+     *   import SvelteVirtualList from '$lib/index.js';
+     *   let virtualList;
+     *   const items = Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `Item ${i}` }));
+     *
+     * <button onclick={() => virtualList.scroll({ index: 5000 })}>
+     *   Scroll to 5000
+     * </button>
+     * <SvelteVirtualList {items} bind:this={virtualList}>
+     *   {#snippet renderItem(item)}
+     *     <div>{item.text}</div>
+     *   {/snippet}
+     * </SvelteVirtualList>
+     *
+     * @returns {void}
+     * @throws {Error} If the index is out of bounds and shouldThrowOnBounds is true
+     */
+    export const scroll = (options: SvelteVirtualListScrollOptions): void => {
+        const { index, smoothScroll, shouldThrowOnBounds, align } = {
+            ...DEFAULT_SCROLL_OPTIONS,
+            ...options
+        }
+
         if (!items.length) return
         if (!viewportElement) {
             tick().then(() => {
                 if (!viewportElement) return
-                doScroll()
+                scroll({ index, smoothScroll, shouldThrowOnBounds, align })
             })
             return
         }
-        doScroll()
 
-        function doScroll() {
-            const target = Number.isFinite(index) ? Math.trunc(index) : 0
-            const clampedIndex = Math.max(0, Math.min(target, items.length - 1))
-            if ((target < 0 || target >= items.length) && shouldThrowOnBounds) {
+        // Bounds checking
+        let targetIndex = index
+        if (targetIndex < 0 || targetIndex >= items.length) {
+            if (shouldThrowOnBounds) {
                 throw new Error(
-                    `scrollToIndex: index ${target} is out of bounds (0-${items.length - 1})`
+                    `scroll: index ${targetIndex} is out of bounds (0-${items.length - 1})`
                 )
+            } else {
+                targetIndex = Math.max(0, Math.min(targetIndex, items.length - 1))
             }
-            if (mode === 'topToBottom') {
-                const scrollTopTarget = getScrollOffsetForIndex(
+        }
+
+        const { start: firstVisibleIndex, end: lastVisibleIndex } = visibleItems()
+        let scrollTarget: number | null = null
+
+        if (mode === 'bottomToTop') {
+            const totalHeight = items.length * calculatedItemHeight
+            const itemOffset = targetIndex * calculatedItemHeight
+            const itemHeight = calculatedItemHeight
+            if (align === 'auto') {
+                if (targetIndex < firstVisibleIndex) {
+                    // Align to top
+                    scrollTarget = Math.max(0, totalHeight - (itemOffset + itemHeight))
+                } else if (targetIndex > lastVisibleIndex - 1) {
+                    // Align to bottom
+                    scrollTarget = Math.max(0, totalHeight - itemOffset - height)
+                } else {
+                    // Already in view, do nothing
+                    return
+                }
+            } else if (align === 'top') {
+                // Align to top
+                scrollTarget = Math.max(0, totalHeight - (itemOffset + itemHeight))
+            } else if (align === 'bottom') {
+                // Align to bottom
+                scrollTarget = Math.max(0, totalHeight - itemOffset - height)
+            }
+        } else {
+            // topToBottom (default)
+            if (align === 'auto') {
+                if (targetIndex < firstVisibleIndex) {
+                    // Scroll so item is at the top
+                    scrollTarget = getScrollOffsetForIndex(
+                        heightCache,
+                        calculatedItemHeight,
+                        targetIndex
+                    )
+                } else if (targetIndex > lastVisibleIndex - 1) {
+                    // Scroll so item is at the bottom
+                    const itemBottom = getScrollOffsetForIndex(
+                        heightCache,
+                        calculatedItemHeight,
+                        targetIndex + 1
+                    )
+                    scrollTarget = Math.max(0, itemBottom - height)
+                } else {
+                    // Already in view, do nothing
+                    return
+                }
+            } else if (align === 'top') {
+                scrollTarget = getScrollOffsetForIndex(
                     heightCache,
                     calculatedItemHeight,
-                    clampedIndex
+                    targetIndex
                 )
-                viewportElement.scrollTo({
-                    top: scrollTopTarget,
-                    behavior: smoothScroll ? 'smooth' : 'auto'
-                })
-            } else if (mode === 'bottomToTop') {
-                // Invert the index for reversed rendering
-                const reversedIndex = items.length - 1 - clampedIndex
+            } else if (align === 'bottom') {
                 const itemBottom = getScrollOffsetForIndex(
                     heightCache,
                     calculatedItemHeight,
-                    reversedIndex + 1
+                    targetIndex + 1
                 )
-                const scrollTopTarget = Math.max(0, itemBottom - height)
-                viewportElement.scrollTo({
-                    top: scrollTopTarget,
-                    behavior: smoothScroll ? 'smooth' : 'auto'
-                })
-            } else {
-                console.warn('scrollToIndex: unknown mode:', mode)
+                scrollTarget = Math.max(0, itemBottom - height)
             }
+        }
+
+        if (scrollTarget !== null) {
+            viewportElement.scrollTo({
+                top: scrollTarget,
+                behavior: smoothScroll ? 'smooth' : 'auto'
+            })
         }
     }
 </script>

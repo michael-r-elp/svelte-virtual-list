@@ -74,7 +74,6 @@
 ### Core Features
 
 1. **Architecture**
-
     - Four-layer DOM structure
     - Svelte 5 runes integration
     - Height caching system
@@ -84,7 +83,6 @@
     - **Programmatic scrolling with `scrollToIndex`**
 
 2. **Performance**
-
     - Smart height estimation
     - DOM recycling
     - Transform-based positioning
@@ -103,21 +101,18 @@
 ### Technical Architecture
 
 1. **Viewport Layer**
-
     - Scroll event management
     - Viewport calculations
     - Visible area control
     - Resize handling
 
 2. **Virtual Layer**
-
     - DOM recycling
     - Item virtualization
     - Position management
     - Transform optimizations
 
 3. **Measurement Layer**
-
     - Height caching
     - Smart estimation
     - Progressive adjustments
@@ -132,7 +127,6 @@
 ### Infrastructure
 
 1. **Testing**
-
     - Vitest integration
     - Utility function coverage
     - Browser compatibility
@@ -149,7 +143,6 @@
 ### Short Term
 
 1. **Performance Optimization**
-
     - Horizontal scrolling support
     - Variable-sized item caching
     - Mobile performance enhancements
@@ -163,7 +156,6 @@
 ### Medium Term
 
 1. **Developer Experience**
-
     - Framework integration guides
     - Performance best practices
     - Migration guides
@@ -183,7 +175,6 @@
 ## Technical Challenges Solved
 
 1. **Scroll Management**
-
     - Bidirectional scrolling
     - Dynamic height handling
     - Smooth animations
@@ -191,7 +182,6 @@
     - **Programmatic scroll targeting (scrollToIndex)**
 
 2. **Performance**
-
     - Height caching system
     - Smart estimation
     - Layout thrashing prevention
@@ -200,7 +190,6 @@
     - Progressive initialization
 
 3. **Browser Support**
-
     - Cross-browser compatibility
     - Mobile optimization
     - Touch device support

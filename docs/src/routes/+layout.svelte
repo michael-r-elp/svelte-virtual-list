@@ -52,21 +52,21 @@
         {
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "Svelte Virtual List",
             "applicationCategory": "DeveloperApplication",
-            "operatingSystem": "Any",
-            "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "USD"
-            },
             "author": {
                 "@type": "Organization",
                 "name": "Humanspeak, Inc.",
                 "url": "https://humanspeak.com"
             },
-            "programmingLanguage": ["Svelte", "TypeScript"],
-            "description": "A high-performance virtual list component for Svelte 5 applications that efficiently renders large datasets with minimal memory usage."
+            "description": "A high-performance virtual list component for Svelte 5 applications that efficiently renders large datasets with minimal memory usage.",
+            "name": "Svelte Virtual List",
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            },
+            "operatingSystem": "Any",
+            "programmingLanguage": ["Svelte", "TypeScript"]
         }
     </script>
 </svelte:head>

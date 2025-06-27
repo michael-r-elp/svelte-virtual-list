@@ -28,11 +28,11 @@ A high-performance virtual list component for Svelte 5 applications that efficie
 - 🧠 Memory-optimized for 10k+ items
 - 🧪 Comprehensive test coverage (vitest and playwright)
 - 🚀 Progressive initialization for large datasets
-- 🕹️ Programmatic scrolling with `scrollToIndex`
+- 🕹️ Programmatic scrolling with `scroll`
 
-## scrollToIndex: Programmatic Scrolling
+## scroll: Programmatic Scrolling
 
-You can now programmatically scroll to any item in the list using the `scrollToIndex` method. This is useful for chat apps, jump-to-item navigation, and more. Thank you for the feature request.
+You can now programmatically scroll to any item in the list using the `scroll` method. This is useful for chat apps, jump-to-item navigation, and more. You can check the usage in `src/routes/tests/scroll`. Thank you for the feature request!
 
 ### Usage Example
 
@@ -43,8 +43,8 @@ You can now programmatically scroll to any item in the list using the `scrollToI
     const items = Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `Item ${i}` }))
 
     function goToItem5000() {
-        // Scroll to item 5000 with smooth scrolling
-        listRef.scrollToIndex(5000, true)
+        // Scroll to item 5000 with smooth scrolling and auto alignment
+        listRef.scroll({ index: 5000, smoothScroll: true, align: 'auto' })
     }
 </script>
 
@@ -58,10 +58,11 @@ You can now programmatically scroll to any item in the list using the `scrollToI
 
 ### API
 
-- `scrollToIndex(index: number, smoothScroll = true, shouldThrowOnBounds = true)`
+- `scroll(options: { index: number; smoothScroll?: boolean; shouldThrowOnBounds?: boolean; align?: 'auto' | 'top' | 'bottom' })`
     - `index`: The item index to scroll to (0-based)
     - `smoothScroll`: If true, uses smooth scrolling (default: true)
     - `shouldThrowOnBounds`: If true, throws if index is out of bounds (default: true)
+    - `align`: Where to align the item in the viewport. `'auto'` (default) scrolls only if the item is out of view, aligning to top or bottom as needed. `'top'` always aligns to the top, `'bottom'` always aligns to the bottom.
 
 ## Installation
 
