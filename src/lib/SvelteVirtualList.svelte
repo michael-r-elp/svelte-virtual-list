@@ -600,18 +600,30 @@
             return
         }
 
+        // Bounds checking
+        let targetIndex = index
+        if (targetIndex < 0 || targetIndex >= items.length) {
+            if (shouldThrowOnBounds) {
+                throw new Error(
+                    `scroll: index ${targetIndex} is out of bounds (0-${items.length - 1})`
+                )
+            } else {
+                targetIndex = Math.max(0, Math.min(targetIndex, items.length - 1))
+            }
+        }
+
         const { start: firstVisibleIndex, end: lastVisibleIndex } = visibleItems()
         let scrollTarget: number | null = null
 
         if (mode === 'bottomToTop') {
             const totalHeight = items.length * calculatedItemHeight
-            const itemOffset = index * calculatedItemHeight
+            const itemOffset = targetIndex * calculatedItemHeight
             const itemHeight = calculatedItemHeight
             if (align === 'auto') {
-                if (index < firstVisibleIndex) {
+                if (targetIndex < firstVisibleIndex) {
                     // Align to top
                     scrollTarget = Math.max(0, totalHeight - (itemOffset + itemHeight))
-                } else if (index > lastVisibleIndex - 1) {
+                } else if (targetIndex > lastVisibleIndex - 1) {
                     // Align to bottom
                     scrollTarget = Math.max(0, totalHeight - itemOffset - height)
                 } else {
@@ -628,15 +640,19 @@
         } else {
             // topToBottom (default)
             if (align === 'auto') {
-                if (index < firstVisibleIndex) {
+                if (targetIndex < firstVisibleIndex) {
                     // Scroll so item is at the top
-                    scrollTarget = getScrollOffsetForIndex(heightCache, calculatedItemHeight, index)
-                } else if (index > lastVisibleIndex - 1) {
+                    scrollTarget = getScrollOffsetForIndex(
+                        heightCache,
+                        calculatedItemHeight,
+                        targetIndex
+                    )
+                } else if (targetIndex > lastVisibleIndex - 1) {
                     // Scroll so item is at the bottom
                     const itemBottom = getScrollOffsetForIndex(
                         heightCache,
                         calculatedItemHeight,
-                        index + 1
+                        targetIndex + 1
                     )
                     scrollTarget = Math.max(0, itemBottom - height)
                 } else {
@@ -644,12 +660,16 @@
                     return
                 }
             } else if (align === 'top') {
-                scrollTarget = getScrollOffsetForIndex(heightCache, calculatedItemHeight, index)
+                scrollTarget = getScrollOffsetForIndex(
+                    heightCache,
+                    calculatedItemHeight,
+                    targetIndex
+                )
             } else if (align === 'bottom') {
                 const itemBottom = getScrollOffsetForIndex(
                     heightCache,
                     calculatedItemHeight,
-                    index + 1
+                    targetIndex + 1
                 )
                 scrollTarget = Math.max(0, itemBottom - height)
             }
