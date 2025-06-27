@@ -1,45 +1,63 @@
 <!--
-    @component
-    A high-performance virtualized list component that efficiently renders large datasets
-    by only mounting DOM nodes for visible items and a small buffer. Optimized for handling
-    lists of 10k+ items through chunked processing and progressive initialization.
+    @component SvelteVirtualList
 
-    Props:
-    - `items` - Array of items to render
-    - `defaultEstimatedItemHeight` - Initial height estimate for items (default: 40px)
-    - `mode` - Scroll direction: 'topToBottom' or 'bottomToTop' (default: 'topToBottom')
-    - `debug` - Enable debug logging (default: false)
-    - `bufferSize` - Number of items to render outside visible area (default: 20)
-    - `containerClass` - Custom class for container element
-    - `viewportClass` - Custom class for viewport element
-    - `contentClass` - Custom class for content wrapper
-    - `itemsClass` - Custom class for items wrapper
-    - `debugFunction` - Custom debug logging function
-    - `testId` - Base test ID for component elements
+    A high-performance, memory-efficient virtualized list component for Svelte 5.
+    Renders only visible items plus a buffer, supporting dynamic item heights,
+    bi-directional (top-to-bottom and bottom-to-top) scrolling, and programmatic control.
 
-    Usage:
+    =============================
+    ==  Key Features           ==
+    =============================
+    - Dynamic item height support (no fixed height required)
+    - Top-to-bottom and bottom-to-top (chat-style) scrolling
+    - Programmatic scrolling with flexible alignment (top, bottom, auto)
+    - Smooth scrolling and buffer size configuration
+    - SSR compatible and hydration-friendly
+    - TypeScript and Svelte 5 runes/snippets support
+    - Customizable styling via class props
+    - Debug mode for development and testing
+    - Optimized for large lists (10k+ items)
+    - Comprehensive test coverage (unit and E2E)
+
+    =============================
+    ==  Usage Example          ==
+    =============================
     ```svelte
     <SvelteVirtualList
         items={data}
-        defaultEstimatedItemHeight={40}
-        mode="topToBottom"
+        mode="bottomToTop"
+        bind:this={listRef}
     >
-        {#snippet renderItem(item, index)}
-            <div class="item">{item.text}</div>
+        {#snippet renderItem(item)}
+            <div>{item.text}</div>
         {/snippet}
     </SvelteVirtualList>
     ```
 
-    Features:
-    - Dynamic height calculation
-    - Bidirectional scrolling
-    - Configurable buffer size
-    - Debug mode
-    - Custom styling
-    - Progressive initialization for large datasets
-    - Memory-optimized for 10k+ items
-    - Chunked processing for smooth performance
-    - Progress tracking during initialization
+    =============================
+    ==  Architecture Notes      ==
+    =============================
+    - Uses a four-layer DOM structure for optimal performance
+    - Only visible items + buffer are mounted in the DOM
+    - Height caching and estimation for dynamic content
+    - Handles resize events and dynamic content changes
+    - Supports chunked initialization for very large lists
+    - All scrolling logic is centralized in the scroll() method
+    - Bi-directional support: mode="topToBottom" or "bottomToTop"
+    - Designed for extensibility and easy debugging
+
+    =============================
+    ==  For Contributors        ==
+    =============================
+    - Please keep all scrolling logic in the scroll() method
+    - Add new features behind feature flags or as optional props
+    - Write tests for all new features (see /test and /tests/scroll)
+    - Use TypeScript and Svelte 5 runes for all new code
+    - Document all exported functions and props with JSDoc
+    - See README.md for API and usage details
+    - For questions, open an issue or discussion on GitHub
+
+    MIT License © Humanspeak, Inc.
 -->
 
 <script lang="ts">
@@ -133,9 +151,9 @@
         calculateScrollPosition,
         calculateTransformY,
         calculateVisibleRange,
+        getScrollOffsetForIndex,
         processChunked,
-        updateHeightAndScroll as utilsUpdateHeightAndScroll,
-        getScrollOffsetForIndex
+        updateHeightAndScroll as utilsUpdateHeightAndScroll
     } from '$lib/utils/virtualList.js'
     import { createDebugInfo, shouldShowDebugInfo } from '$lib/utils/virtualListDebug.js'
     import { BROWSER } from 'esm-env'
