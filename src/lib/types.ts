@@ -85,3 +85,28 @@ export type SvelteVirtualListDebugInfo = {
     processedItems: number
     averageItemHeight: number
 }
+
+export type SvelteVirtualListScrollAlign = 'auto' | 'top' | 'bottom'
+
+/**
+ * Options for scrolling to a specific index in the virtual list.
+ */
+export interface SvelteVirtualListScrollOptions {
+    /** The index of the item to scroll to. */
+    index: number
+    /** Whether to use smooth scrolling animation. Default: true */
+    smoothScroll?: boolean
+    /** Whether to throw an error if the index is out of bounds. Default: true */
+    shouldThrowOnBounds?: boolean
+    /** Alignment for the scrolled item: 'auto', 'top', or 'bottom'. Default: 'auto' */
+    align?: SvelteVirtualListScrollAlign
+}
+
+/**
+ * Default options for scrolling.
+ */
+export const DEFAULT_SCROLL_OPTIONS: Partial<SvelteVirtualListScrollOptions> = {
+    smoothScroll: true,
+    shouldThrowOnBounds: true,
+    align: 'auto' as SvelteVirtualListScrollAlign
+}

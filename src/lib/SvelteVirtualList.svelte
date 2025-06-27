@@ -122,7 +122,11 @@
      * - Progressive size adjustment system
      */
 
-    import type { SvelteVirtualListProps } from '$lib/types.js'
+    import {
+        DEFAULT_SCROLL_OPTIONS,
+        type SvelteVirtualListProps,
+        type SvelteVirtualListScrollOptions
+    } from '$lib/types.js'
     import { calculateAverageHeightDebounced } from '$lib/utils/heightCalculation.js'
     import { createRafScheduler } from '$lib/utils/raf.js'
     import {
@@ -495,6 +499,9 @@
     /**
      * Scrolls the virtual list to the item at the given index.
      *
+     * @deprecated This function is deprecated and will be removed in a future version.
+     * Use the new scroll method from the component instance instead.
+     *
      * @function scrollToIndex
      * @param index The index of the item to scroll to.
      * @param smoothScroll (default: true) Whether to use smooth scrolling.
@@ -525,50 +532,116 @@
         smoothScroll = true,
         shouldThrowOnBounds = true
     ): void => {
+        // Deprecation warning
+        console.warn(
+            'SvelteVirtualList: scrollToIndex is deprecated and will be removed in a future version. ' +
+                'Use the new scroll method from the component instance instead.'
+        )
+
+        // Call the new scroll function with the provided parameters
+        scroll({ index, smoothScroll, shouldThrowOnBounds })
+    }
+
+    /**
+     * Scrolls the virtual list to the item at the given index using a type-based options approach.
+     *
+     * @function scroll
+     * @param options Configuration options for scrolling behavior.
+     *
+     * @example
+     * // Svelte usage:
+     * // In your <script> block:
+     *   import SvelteVirtualList from '$lib/index.js';
+     *   let virtualList;
+     *   const items = Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `Item ${i}` }));
+     *
+     * <button onclick={() => virtualList.scroll({ index: 5000 })}>
+     *   Scroll to 5000
+     * </button>
+     * <SvelteVirtualList {items} bind:this={virtualList}>
+     *   {#snippet renderItem(item)}
+     *     <div>{item.text}</div>
+     *   {/snippet}
+     * </SvelteVirtualList>
+     *
+     * @returns {void}
+     * @throws {Error} If the index is out of bounds and shouldThrowOnBounds is true
+     */
+    export const scroll = (options: SvelteVirtualListScrollOptions): void => {
+        const { index, smoothScroll, shouldThrowOnBounds, align } = {
+            ...DEFAULT_SCROLL_OPTIONS,
+            ...options
+        }
+
         if (!items.length) return
         if (!viewportElement) {
             tick().then(() => {
                 if (!viewportElement) return
-                doScroll()
+                scroll({ index, smoothScroll, shouldThrowOnBounds, align })
             })
             return
         }
-        doScroll()
 
-        function doScroll() {
-            const target = Number.isFinite(index) ? Math.trunc(index) : 0
-            const clampedIndex = Math.max(0, Math.min(target, items.length - 1))
-            if ((target < 0 || target >= items.length) && shouldThrowOnBounds) {
-                throw new Error(
-                    `scrollToIndex: index ${target} is out of bounds (0-${items.length - 1})`
-                )
+        const { start: firstVisibleIndex, end: lastVisibleIndex } = visibleItems()
+        let scrollTarget: number | null = null
+
+        if (mode === 'bottomToTop') {
+            const totalHeight = items.length * calculatedItemHeight
+            const itemOffset = index * calculatedItemHeight
+            const itemHeight = calculatedItemHeight
+            if (align === 'auto') {
+                if (index < firstVisibleIndex) {
+                    // Align to top
+                    scrollTarget = Math.max(0, totalHeight - (itemOffset + itemHeight))
+                } else if (index > lastVisibleIndex - 1) {
+                    // Align to bottom
+                    scrollTarget = Math.max(0, totalHeight - itemOffset - height)
+                } else {
+                    // Already in view, do nothing
+                    return
+                }
+            } else if (align === 'top') {
+                // Align to top
+                scrollTarget = Math.max(0, totalHeight - (itemOffset + itemHeight))
+            } else if (align === 'bottom') {
+                // Align to bottom
+                scrollTarget = Math.max(0, totalHeight - itemOffset - height)
             }
-            if (mode === 'topToBottom') {
-                const scrollTopTarget = getScrollOffsetForIndex(
-                    heightCache,
-                    calculatedItemHeight,
-                    clampedIndex
-                )
-                viewportElement.scrollTo({
-                    top: scrollTopTarget,
-                    behavior: smoothScroll ? 'smooth' : 'auto'
-                })
-            } else if (mode === 'bottomToTop') {
-                // Invert the index for reversed rendering
-                const reversedIndex = items.length - 1 - clampedIndex
+        } else {
+            // topToBottom (default)
+            if (align === 'auto') {
+                if (index < firstVisibleIndex) {
+                    // Scroll so item is at the top
+                    scrollTarget = getScrollOffsetForIndex(heightCache, calculatedItemHeight, index)
+                } else if (index > lastVisibleIndex - 1) {
+                    // Scroll so item is at the bottom
+                    const itemBottom = getScrollOffsetForIndex(
+                        heightCache,
+                        calculatedItemHeight,
+                        index + 1
+                    )
+                    scrollTarget = Math.max(0, itemBottom - height)
+                } else {
+                    // Already in view, do nothing
+                    return
+                }
+            } else if (align === 'top') {
+                scrollTarget = getScrollOffsetForIndex(heightCache, calculatedItemHeight, index)
+            } else if (align === 'bottom') {
                 const itemBottom = getScrollOffsetForIndex(
                     heightCache,
                     calculatedItemHeight,
-                    reversedIndex + 1
+                    index + 1
                 )
-                const scrollTopTarget = Math.max(0, itemBottom - height)
-                viewportElement.scrollTo({
-                    top: scrollTopTarget,
-                    behavior: smoothScroll ? 'smooth' : 'auto'
-                })
-            } else {
-                console.warn('scrollToIndex: unknown mode:', mode)
+                scrollTarget = Math.max(0, itemBottom - height)
             }
+        }
+
+        if (scrollTarget !== null) {
+            viewportElement.scrollTo({
+                top: scrollTarget,
+                behavior: smoothScroll ? 'smooth' : 'auto'
+            })
         }
     }
 </script>
