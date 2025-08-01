@@ -144,7 +144,7 @@
         DEFAULT_SCROLL_OPTIONS,
         type SvelteVirtualListProps,
         type SvelteVirtualListScrollOptions
-    } from '$lib/types.js'
+    } from '$lib/types'
     import { calculateAverageHeightDebounced } from '$lib/utils/heightCalculation.js'
     import { createRafScheduler } from '$lib/utils/raf.js'
     import {
@@ -154,7 +154,7 @@
         getScrollOffsetForIndex,
         processChunked,
         updateHeightAndScroll as utilsUpdateHeightAndScroll
-    } from '$lib/utils/virtualList.js'
+    } from '$lib/utils/virtualList'
     import { createDebugInfo, shouldShowDebugInfo } from '$lib/utils/virtualListDebug.js'
     import { BROWSER } from 'esm-env'
     import { onMount, tick } from 'svelte'
@@ -185,6 +185,7 @@
      */
     let containerElement: HTMLElement // Reference to the main container element
     let viewportElement: HTMLElement // Reference to the scrollable viewport element
+    let itemsElement: HTMLElement
     const itemElements = $state<HTMLElement[]>([]) // Array of rendered item element references
 
     /**
@@ -193,6 +194,7 @@
     let scrollTop = $state(0) // Current scroll position
     let height = $state(0) // Container height
     let calculatedItemHeight = $state(defaultEstimatedItemHeight) // Current average item height
+    let gridColumns = 1;
 
     /**
      * State Flags and Control
@@ -241,7 +243,8 @@
     // Add new effect to handle height changes
     $effect(() => {
         if (BROWSER && initialized && mode === 'bottomToTop' && viewportElement) {
-            const totalHeight = Math.max(0, items.length * calculatedItemHeight)
+            const totalRows = Math.ceil(items.length / gridColumns)
+            const totalHeight = Math.max(0, totalRows * calculatedItemHeight);
             const targetScrollTop = Math.max(0, totalHeight - height)
 
             // Only update if the difference is significant
@@ -273,7 +276,8 @@
             items.length &&
             !initialized
         ) {
-            const totalHeight = Math.max(0, items.length * calculatedItemHeight)
+            const totalRows = Math.ceil(items.length / gridColumns)
+            const totalHeight = Math.max(0, totalRows * calculatedItemHeight);
             const targetScrollTop = Math.max(0, totalHeight - height)
 
             // Add delay to ensure layout is complete
@@ -295,6 +299,12 @@
             })
         }
     })
+
+    function updateGridColumns() {
+        // Use the actual grid element reference if needed!
+        const columns = getGridTemplateColumnsAmount(itemsElement);
+        gridColumns = columns ? Number(columns) : 1;
+    }
 
     /**
      * Calculates the range of items that should be rendered based on current scroll position.
@@ -323,6 +333,7 @@
             scrollTop,
             viewportHeight,
             calculatedItemHeight,
+            gridColumns,
             items.length,
             bufferSize,
             mode
@@ -391,7 +402,8 @@
                             const targetScrollTop = calculateScrollPosition(
                                 items.length,
                                 calculatedItemHeight,
-                                finalHeight
+                                finalHeight,
+                                gridColumns
                             )
 
                             void containerElement.offsetHeight
@@ -473,6 +485,15 @@
         )
     }
 
+    function getGridTemplateColumnsAmount(element: HTMLElement): number | null {
+        if (!element) return null;
+
+        const computedStyle = window.getComputedStyle(element);
+        const gridTemplateColumns = computedStyle.getPropertyValue('grid-template-columns');
+
+        return gridTemplateColumns.split(' ').length || null;
+    }
+
     // Modify the mount effect to use chunked initialization
     $effect(() => {
         if (BROWSER && items.length > 1000) {
@@ -485,6 +506,17 @@
     // Setup and cleanup
     onMount(() => {
         if (BROWSER) {
+            updateGridColumns();
+
+              resizeObserver = new ResizeObserver(() => {
+                updateGridColumns();
+                updateHeightAndScroll(true); // force recalculation
+            });
+
+            if (itemsElement) {
+                resizeObserver.observe(itemsElement);
+            }
+
             // Initial setup of heights and scroll position
             updateHeightAndScroll()
 
@@ -616,7 +648,8 @@
         let scrollTarget: number | null = null
 
         if (mode === 'bottomToTop') {
-            const totalHeight = items.length * calculatedItemHeight
+            const totalRows = Math.ceil(items.length / gridColumns)
+            const totalHeight = Math.max(0, totalRows * calculatedItemHeight);
             const itemOffset = targetIndex * calculatedItemHeight
             const itemHeight = calculatedItemHeight
             if (align === 'auto') {
@@ -710,19 +743,21 @@
             id="virtual-list-content"
             {...testId ? { 'data-testid': `${testId}-content` } : {}}
             class={contentClass ?? 'virtual-list-content'}
-            style:height="{Math.max(height, items.length * calculatedItemHeight)}px"
+            style:height="{Math.max(height, Math.ceil(items.length / gridColumns) * calculatedItemHeight)}px"
         >
             <!-- Items container is translated to show correct items -->
             <div
                 id="virtual-list-items"
                 {...testId ? { 'data-testid': `${testId}-items` } : {}}
                 class={itemsClass ?? 'virtual-list-items'}
+                bind:this={itemsElement}
                 style:transform="translateY({calculateTransformY(
                     mode,
                     items.length,
                     visibleItems().end,
                     visibleItems().start,
-                    calculatedItemHeight
+                    calculatedItemHeight,
+                    gridColumns
                 )}px)"
             >
                 {#each mode === 'bottomToTop' ? items

@@ -11,15 +11,18 @@ import type { VirtualListSetters, VirtualListState } from './types.js'
  * @param {number} totalItems - The total number of items in the list
  * @param {number} itemHeight - The height of each individual item in pixels
  * @param {number} containerHeight - The visible height of the container in pixels
+ * @param {number} gridColumns
  * @returns {number} The maximum scroll position in pixels
  */
 export const calculateScrollPosition = (
     totalItems: number,
     itemHeight: number,
-    containerHeight: number
+    containerHeight: number,
+    gridColumns: number = 1
 ) => {
     if (totalItems === 0) return 0
-    const totalHeight = totalItems * itemHeight
+    const totalRows = Math.ceil(totalItems / gridColumns)
+    const totalHeight = Math.max(0, totalRows * itemHeight);
     return Math.max(0, totalHeight - containerHeight)
 }
 
@@ -33,6 +36,7 @@ export const calculateScrollPosition = (
  * @param {number} scrollTop - Current scroll position in pixels
  * @param {number} viewportHeight - Height of the visible area in pixels
  * @param {number} itemHeight - Height of each list item in pixels
+ * @param {number} gridColumns - Number of columns in the grid (default 1 for list)
  * @param {number} totalItems - Total number of items in the list
  * @param {number} bufferSize - Number of items to render outside the visible area
  * @param {SvelteVirtualListMode} mode - Scroll direction mode
@@ -42,25 +46,32 @@ export const calculateVisibleRange = (
     scrollTop: number,
     viewportHeight: number,
     itemHeight: number,
+    gridColumns: number = 1,
     totalItems: number,
     bufferSize: number,
     mode: SvelteVirtualListMode
 ) => {
+    if (gridColumns < 1) gridColumns = 1;
+    const totalRows = Math.ceil(totalItems / gridColumns);
+
     if (mode === 'bottomToTop') {
-        const visibleCount = Math.ceil(viewportHeight / itemHeight) + 1
-        const bottomIndex = totalItems - Math.floor(scrollTop / itemHeight)
+        const visibleRows = Math.ceil(viewportHeight / itemHeight) + 1;
+        const bottomRowIndex = totalRows - Math.floor(scrollTop / itemHeight);
         // Add buffer to both ends
-        const start = Math.max(0, bottomIndex - visibleCount - bufferSize)
-        const end = Math.min(totalItems, bottomIndex + bufferSize)
-        return { start, end }
-    } else {
-        const start = Math.floor(scrollTop / itemHeight)
-        const end = Math.min(totalItems, start + Math.ceil(viewportHeight / itemHeight) + 1)
-        // Add buffer to both ends
+        const startRow = Math.max(0, bottomRowIndex - visibleRows - bufferSize);
+        const endRow = Math.min(totalRows, bottomRowIndex + bufferSize);
         return {
-            start: Math.max(0, start - bufferSize),
-            end: Math.min(totalItems, end + bufferSize)
-        }
+            start: startRow * gridColumns,
+            end: Math.min(totalItems, endRow * gridColumns)
+        };
+    } else {
+        // topToBottom (default)
+        const startRow = Math.floor(scrollTop / itemHeight);
+        const endRow = Math.min(totalRows, startRow + Math.ceil(viewportHeight / itemHeight) + 1);
+        return {
+            start: Math.max(0, startRow * gridColumns - bufferSize * gridColumns),
+            end: Math.min(totalItems, endRow * gridColumns + bufferSize * gridColumns)
+        };
     }
 }
 
@@ -76,6 +87,7 @@ export const calculateVisibleRange = (
  * @param {number} visibleEnd - Index of the last visible item
  * @param {number} visibleStart - Index of the first visible item
  * @param {number} itemHeight - Height of each list item in pixels
+ * @param {number} gridColumns - Amount of grid columns
  * @returns {number} The calculated transform Y value in pixels
  */
 export const calculateTransformY = (
@@ -83,11 +95,17 @@ export const calculateTransformY = (
     totalItems: number,
     visibleEnd: number,
     visibleStart: number,
-    itemHeight: number
+    itemHeight: number,
+    gridColumns: number = 1
 ) => {
-    return mode === 'bottomToTop'
-        ? (totalItems - visibleEnd) * itemHeight
-        : visibleStart * itemHeight
+    const startRow = Math.floor(visibleStart / gridColumns)
+    if (mode === 'bottomToTop') {
+        const totalRows = Math.ceil(totalItems / gridColumns)
+        const endRow = Math.ceil(visibleEnd / gridColumns)
+        return (totalRows - endRow) * itemHeight
+    } else {
+        return startRow * itemHeight
+    }
 }
 
 /**
