@@ -144,7 +144,7 @@
         DEFAULT_SCROLL_OPTIONS,
         type SvelteVirtualListProps,
         type SvelteVirtualListScrollOptions
-    } from '$lib/types'
+    } from '$lib/types.js'
     import { calculateAverageHeightDebounced } from '$lib/utils/heightCalculation.js'
     import { createRafScheduler } from '$lib/utils/raf.js'
     import {
@@ -154,7 +154,7 @@
         getScrollOffsetForIndex,
         processChunked,
         updateHeightAndScroll as utilsUpdateHeightAndScroll
-    } from '$lib/utils/virtualList'
+    } from '$lib/utils/virtualList.js'
     import { createDebugInfo, shouldShowDebugInfo } from '$lib/utils/virtualListDebug.js'
     import { BROWSER } from 'esm-env'
     import { onMount, tick } from 'svelte'
