@@ -194,7 +194,7 @@
     let scrollTop = $state(0) // Current scroll position
     let height = $state(0) // Container height
     let calculatedItemHeight = $state(defaultEstimatedItemHeight) // Current average item height
-    let gridColumns = 1;
+    let gridColumns = $state(1);
 
     /**
      * State Flags and Control
